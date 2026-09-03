@@ -1,0 +1,3006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>BalaCare — Pediatric Ayurveda Ward Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F2E9;
+    --card:#FFFFFF;
+    --ink:#20301F;
+    --ink-soft:#5B6455;
+    --ink-faint:#8B9280;
+    --line:#E2DCC8;
+    --moss:#3F6B4A;
+    --moss-dark:#2C4E36;
+    --moss-pale:#E7EFE3;
+    --turmeric:#C67C33;
+    --turmeric-pale:#F5E6D3;
+    --danger:#B23A34;
+    --danger-pale:#F6E1DF;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    justify-content:center;
+  }
+  h1,h2,h3,.serif{font-family:'Source Serif 4',Georgia,serif;}
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  header.topbar{
+    position:sticky; top:0; z-index:20;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    padding:14px 18px 12px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  header.topbar .brand{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--moss-dark);
+    letter-spacing:0.2px;
+  }
+  header.topbar .brand .leaf{color:var(--turmeric); font-size:15px; margin-right:5px;}
+  header.topbar .meta{
+    text-align:right;
+    font-size:12px;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .save-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--moss);
+    display:inline-block;
+    transition:background .3s;
+  }
+  .save-dot.saving{background:var(--turmeric);}
+  main{
+    flex:1;
+    padding:16px 18px 96px;
+    overflow-y:auto;
+  }
+  nav.tabbar{
+    position:sticky; bottom:0; z-index:20;
+    background:var(--card);
+    border-top:1px solid var(--line);
+    display:flex;
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  nav.tabbar button{
+    flex:1;
+    background:none;
+    border:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    padding:8px 2px 6px;
+    font-family:inherit;
+    font-size:11px;
+    color:var(--ink-faint);
+    cursor:pointer;
+    border-radius:8px;
+  }
+  nav.tabbar button .ic{font-size:19px; line-height:1;}
+  nav.tabbar button.active{color:var(--moss-dark); background:var(--moss-pale);}
+  section.view{display:none;}
+  section.view.active{display:block;}
+
+  .section-title{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:17px;
+    margin:0 0 10px;
+    color:var(--ink);
+  }
+  .section-title.top{margin-top:0;}
+  .subtle{color:var(--ink-soft); font-size:13px; margin:0 0 14px;}
+
+  .quick-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .qa-btn{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 12px;
+    text-align:left;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .qa-btn .ic{font-size:20px; margin-bottom:6px; display:block;}
+  .qa-btn .lb{font-size:13.5px; font-weight:500; color:var(--ink);}
+
+  .stat-row{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px;}
+  .stat-card{background:var(--moss-pale); border-radius:var(--radius); padding:12px 14px;}
+  .stat-card .num{font-family:'Source Serif 4',serif; font-size:24px; font-weight:600; color:var(--moss-dark);}
+  .stat-card .lb{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .patient-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    margin-bottom:10px;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .patient-card:active{background:#FBF9F4;}
+  .patient-card .bed{
+    width:38px; height:38px; border-radius:50%;
+    background:var(--turmeric-pale); color:var(--turmeric);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:13px; flex-shrink:0;
+  }
+  .patient-card .info{flex:1; min-width:0;}
+  .patient-card .name{font-size:14.5px; font-weight:500; color:var(--ink);}
+  .patient-card .sub{font-size:12px; color:var(--ink-soft); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .patient-card .status-pill{
+    font-size:10.5px; padding:3px 8px; border-radius:20px;
+    background:var(--moss-pale); color:var(--moss-dark); white-space:nowrap;
+  }
+  .patient-card .status-pill.discharged{background:#EEECE4; color:var(--ink-faint);}
+
+  .empty-state{
+    text-align:center;
+    padding:36px 18px;
+    color:var(--ink-soft);
+  }
+  .empty-state .ic{font-size:30px; margin-bottom:10px; display:block;}
+  .empty-state .headline{font-family:'Source Serif 4',serif; font-size:16px; color:var(--ink); margin-bottom:4px;}
+  .empty-state .body{font-size:13px; line-height:1.5;}
+
+  .searchbar{
+    display:flex; align-items:center; gap:8px;
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:9px 12px;
+    margin-bottom:12px;
+  }
+  .searchbar input{
+    border:none; outline:none; background:none;
+    font-family:inherit; font-size:14px; flex:1; color:var(--ink);
+  }
+  .searchbar .ic{color:var(--ink-faint); font-size:15px;}
+
+  .chip-row{display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px;}
+  .chip{
+    flex-shrink:0;
+    padding:6px 13px; border-radius:20px;
+    background:var(--card); border:1px solid var(--line);
+    font-size:12.5px; color:var(--ink-soft); cursor:pointer;
+    white-space:nowrap;
+  }
+  .chip.active{background:var(--moss); color:#fff; border-color:var(--moss);}
+
+  .btn{
+    font-family:inherit; font-size:14px; font-weight:500;
+    border-radius:8px; padding:10px 16px; cursor:pointer; border:1px solid var(--line);
+    background:var(--card); color:var(--ink);
+  }
+  .btn-primary{background:var(--moss); color:#fff; border-color:var(--moss);}
+  .btn-primary:active{background:var(--moss-dark);}
+  .btn-danger{background:var(--card); color:var(--danger); border-color:var(--danger-pale);}
+  .btn-block{width:100%; text-align:center;}
+  .btn-ghost{background:none; border:none; color:var(--moss-dark); padding:8px 4px;}
+
+  .fab{
+    position:fixed;
+    bottom:82px; right:calc(50% - 240px + 18px);
+    width:52px; height:52px; border-radius:50%;
+    background:var(--moss); color:#fff; border:none;
+    font-size:24px; box-shadow:0 3px 10px rgba(44,78,54,0.35);
+    cursor:pointer; z-index:15;
+  }
+  @media (max-width:520px){ .fab{ right:18px; } }
+
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:5px; font-weight:500;}
+  .field input, .field select, .field textarea{
+    width:100%; font-family:inherit; font-size:14.5px;
+    padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+    background:var(--card); color:var(--ink); outline:none;
+    min-width:0; -webkit-appearance:none; appearance:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--moss);}
+  .field input[type="date"]{
+    font-size:13.5px;
+    padding-right:6px;
+    line-height:1.3;
+  }
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:10px; min-width:0;}
+  .field-row .field{min-width:0;}
+  .field textarea{resize:vertical; min-height:64px; line-height:1.5;}
+  .seg{display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .seg button{
+    flex:1; padding:9px; background:var(--card); border:none;
+    font-family:inherit; font-size:13.5px; color:var(--ink-soft); cursor:pointer;
+    border-right:1px solid var(--line);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--moss-pale); color:var(--moss-dark); font-weight:500;}
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(32,48,31,0.4);
+    display:none; align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal-sheet{
+    background:var(--paper); width:100%; max-width:480px;
+    border-radius:18px 18px 0 0; padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+    max-height:88vh; overflow-y:auto;
+  }
+  .modal-sheet .modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .modal-sheet .modal-title{font-family:'Source Serif 4',serif; font-weight:600; font-size:18px;}
+  .modal-sheet .close-x{background:none; border:none; font-size:20px; color:var(--ink-soft); cursor:pointer; padding:4px;}
+
+  .profile-header{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:16px; margin-bottom:16px;
+  }
+  .profile-header .pname{font-family:'Source Serif 4',serif; font-size:19px; font-weight:600;}
+  .profile-header .pmeta{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+  .profile-header .pgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; margin-top:12px; padding-top:12px; border-top:1px solid var(--line);}
+  .profile-header .pgrid div span.k{display:block; font-size:11px; color:var(--ink-faint);}
+  .profile-header .pgrid div span.v{font-size:13px; color:var(--ink);}
+
+  .action-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;}
+  .action-grid .qa-btn.disabled{opacity:0.55;}
+
+  .timeline-item{display:flex; gap:12px; margin-bottom:14px;}
+  .timeline-item .dot{width:8px; height:8px; border-radius:50%; background:var(--moss); margin-top:6px; flex-shrink:0;}
+  .timeline-item .tcontent{flex:1;}
+  .timeline-item .ttime{font-size:11px; color:var(--ink-faint);}
+  .timeline-item .ttext{font-size:13.5px; color:var(--ink);}
+
+  .tool-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:14px; margin-bottom:10px;
+  }
+  .tool-row .tinfo .tt{font-size:14px; font-weight:500;}
+  .tool-row .tinfo .ts{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .toast{
+    position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; font-size:13px;
+    padding:9px 16px; border-radius:20px; z-index:60;
+    opacity:0; pointer-events:none; transition:opacity .25s;
+  }
+  .toast.show{opacity:1;}
+
+  .placeholder-view{text-align:center; padding:60px 20px 20px;}
+  .placeholder-view .ic{font-size:34px; margin-bottom:14px; display:block;}
+  .placeholder-view h2{font-size:18px; margin-bottom:8px;}
+  .placeholder-view p{font-size:13.5px; color:var(--ink-soft); line-height:1.6;}
+
+  .wizard-head{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .step-dots{display:flex; gap:6px; margin:2px 0 18px;}
+  .step-dots .d{flex:1; height:4px; border-radius:2px; background:var(--line);}
+  .step-dots .d.done{background:var(--moss);}
+  .step-dots .d.now{background:var(--turmeric);}
+  .step-label{font-size:12px; color:var(--ink-soft); margin-bottom:2px;}
+  .step-heading{font-family:'Source Serif 4',serif; font-size:17px; font-weight:600; margin-bottom:14px;}
+  .wizard-nav{display:flex; gap:10px; margin-top:6px;}
+  .wizard-nav .btn{flex:1;}
+
+  .exam-section{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:12px;}
+  .exam-section h3{font-family:'Source Serif 4',serif; font-size:14.5px; font-weight:600; margin:0 0 10px; color:var(--moss-dark);}
+  .exam-section .erow{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; margin-bottom:8px;}
+  .exam-section .erow:last-child{margin-bottom:0;}
+  .exam-section .ef label{display:block; font-size:11px; color:var(--ink-faint); margin-bottom:3px;}
+  .exam-section .ef input{width:100%; font-family:inherit; font-size:13px; padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:var(--paper); min-width:0;}
+  .exam-section .ef select{width:100%; font-family:inherit; font-size:13px; padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:var(--paper); min-width:0; -webkit-appearance:none; appearance:none;}
+
+  .list-record{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:13px 14px; margin-bottom:10px; cursor:pointer;}
+  .list-record .lr-top{display:flex; justify-content:space-between; align-items:baseline;}
+  .list-record .lr-date{font-size:13px; font-weight:500;}
+  .list-record .lr-tag{font-size:11px; padding:2px 8px; border-radius:12px;}
+  .list-record .lr-tag.better{background:var(--moss-pale); color:var(--moss-dark);}
+  .list-record .lr-tag.same{background:var(--turmeric-pale); color:var(--turmeric);}
+  .list-record .lr-tag.worse{background:var(--danger-pale); color:var(--danger);}
+  .list-record .lr-tag.new-symptom{background:var(--danger-pale); color:var(--danger);}
+  .list-record .lr-preview{font-size:12.5px; color:var(--ink-soft); margin-top:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+  .tag-select{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .tag-select .tg{padding:7px 13px; border-radius:20px; border:1px solid var(--line); background:var(--card); font-size:12.5px; color:var(--ink-soft); cursor:pointer;}
+  .tag-select .tg.active{background:var(--moss); border-color:var(--moss); color:#fff;}
+
+  .subtab-row{display:flex; gap:8px; margin-bottom:16px;}
+  .subtab-row .stb{flex:1; text-align:center; padding:8px 4px; border-radius:8px; border:1px solid var(--line); background:var(--card); font-size:13px; color:var(--ink-soft); cursor:pointer;}
+  .subtab-row .stb.active{background:var(--moss); border-color:var(--moss); color:#fff;}
+
+  .metric-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;}
+
+  .growth-summary{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .growth-summary .gcard{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:12px;}
+  .growth-summary .gcard .glabel{font-size:11px; color:var(--ink-faint); margin-bottom:3px;}
+  .growth-summary .gcard .gval{font-family:'Source Serif 4',serif; font-size:19px; font-weight:600;}
+  .growth-summary .gcard .gdelta{font-size:11.5px; margin-top:3px;}
+  .growth-summary .gcard .gdelta.up{color:var(--moss-dark);}
+  .growth-summary .gcard .gdelta.down{color:var(--turmeric);}
+  .sparkline-wrap{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;}
+  .sparkline-wrap .sp-title{font-size:12px; color:var(--ink-soft); margin-bottom:6px;}
+
+  .ref-note{background:var(--moss-pale); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--moss-dark); margin-bottom:16px; line-height:1.5;}
+
+  .domain-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:12px;}
+  .domain-card h3{font-family:'Source Serif 4',serif; font-size:14.5px; font-weight:600; margin:0 0 10px; color:var(--moss-dark);}
+  .milestone-item{padding:10px 0; border-top:1px solid var(--line);}
+  .milestone-item:first-child{border-top:none; padding-top:0;}
+  .milestone-item .mi-label{font-size:13px; color:var(--ink); margin-bottom:7px;}
+  .milestone-item .seg{margin-bottom:6px;}
+  .milestone-item .seg button{font-size:11.5px; padding:7px 4px;}
+  .milestone-item .mi-note{width:100%; font-size:12.5px; padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:var(--paper); font-family:inherit;}
+
+  .cdc-age-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:13px 14px; margin-bottom:10px;}
+  .cdc-age-card .age-h{font-family:'Source Serif 4',serif; font-weight:600; font-size:14px; color:var(--turmeric); margin-bottom:6px;}
+  .cdc-age-card ul{margin:0; padding-left:18px; font-size:13px; color:var(--ink); line-height:1.6;}
+
+  .lib-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .lib-cat-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px 12px; cursor:pointer; text-align:left;}
+  .lib-cat-card .ic{font-size:22px; display:block; margin-bottom:6px;}
+  .lib-cat-card .lb{font-size:13px; font-weight:500; color:var(--ink);}
+  .lib-cat-card .ct{font-size:11px; color:var(--ink-faint); margin-top:2px;}
+  .caution-note{background:var(--turmeric-pale); color:#8a5622; border-radius:8px; padding:11px 13px; font-size:12px; line-height:1.55; margin-bottom:16px;}
+  .lib-item-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; margin-bottom:10px; cursor:pointer; display:flex; align-items:flex-start; gap:10px;}
+  .lib-item-card .star{color:var(--turmeric); font-size:15px; flex-shrink:0; margin-top:1px;}
+  .lib-item-card .li-body{flex:1; min-width:0;}
+  .lib-item-card .li-name{font-size:14px; font-weight:500;}
+  .lib-item-card .li-sub{font-size:12px; color:var(--ink-soft); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lib-item-card .li-tags{margin-top:6px; display:flex; gap:5px; flex-wrap:wrap;}
+  .lib-item-card .li-tags span{font-size:10.5px; background:var(--moss-pale); color:var(--moss-dark); padding:2px 7px; border-radius:10px;}
+  .fav-toggle{background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink-faint); padding:4px;}
+  .fav-toggle.active{color:var(--turmeric);}
+
+  .status-badge{font-size:10.5px; padding:3px 9px; border-radius:12px; white-space:nowrap;}
+  .status-badge.continue{background:var(--moss-pale); color:var(--moss-dark);}
+  .status-badge.change{background:var(--turmeric-pale); color:var(--turmeric);}
+  .status-badge.omit{background:var(--danger-pale); color:var(--danger);}
+  .status-badge.completed{background:#EEECE4; color:var(--ink-faint);}
+  .cat-pick-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;}
+  .cat-pick{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 6px; text-align:center; cursor:pointer; font-size:11.5px; color:var(--ink-soft);}
+  .cat-pick .ic{font-size:18px; display:block; margin-bottom:4px;}
+  .cat-pick.active{background:var(--moss-pale); border-color:var(--moss); color:var(--moss-dark);}
+
+  .cat-badge{font-size:10.5px; padding:3px 9px; border-radius:12px; background:var(--moss-pale); color:var(--moss-dark); white-space:nowrap;}
+
+  .scan-bht-box{background:var(--moss-pale); border-radius:10px; padding:12px 14px; margin-bottom:16px;}
+  .scan-bht-box .btn{background:var(--moss); color:#fff; border-color:var(--moss);}
+  .scan-bht-box .subtle{margin:6px 0 0 !important; color:var(--moss-dark) !important; opacity:0.85;}
+  #bht-scan-caption.scanning{color:var(--turmeric) !important; font-weight:500;}
+  #bht-scan-caption.scan-error{color:var(--danger) !important; font-weight:500;}
+  #bht-scan-caption.scan-success{color:var(--moss-dark) !important; font-weight:600;}
+
+  .qnote-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:11px 13px; margin-bottom:9px; display:flex; align-items:flex-start; gap:10px;}
+  .qnote-card.resolved{opacity:0.55;}
+  .qnote-card .qn-check{flex-shrink:0; width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line); background:var(--card); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; color:transparent; margin-top:1px;}
+  .qnote-card.resolved .qn-check{background:var(--moss); border-color:var(--moss); color:#fff;}
+  .qnote-card .qn-body{flex:1; min-width:0;}
+  .qnote-card .qn-text{font-size:13.5px; color:var(--ink); line-height:1.4;}
+  .qnote-card.resolved .qn-text{text-decoration:line-through;}
+  .qnote-card .qn-meta{font-size:11px; color:var(--ink-faint); margin-top:4px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .qnote-card .qn-flag{color:var(--turmeric);}
+  .qnote-card .qn-del{background:none; border:none; color:var(--ink-faint); font-size:15px; cursor:pointer; padding:2px 4px; flex-shrink:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand"><span class="leaf">&#127807;</span>BalaCare</div>
+    <div class="meta">
+      <span id="today-date"></span>
+      <span class="save-dot" id="save-dot" title="Local save status"></span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="openNewPatient()"><span class="ic">&#10133;</span><span class="lb">New patient</span></button>
+        <button class="qa-btn" onclick="goto('patients')"><span class="ic">&#128118;</span><span class="lb">Today's patients</span></button>
+        <button class="qa-btn" onclick="openQuickNote()"><span class="ic">&#128221;</span><span class="lb">Quick note</span></button>
+        <button class="qa-btn" onclick="openQuickKnowledge()"><span class="ic">&#127807;</span><span class="lb">Add knowledge</span></button>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="num" id="stat-today">0</div><div class="lb">Today's patients</div></div>
+        <div class="stat-card"><div class="num" id="stat-pending">0</div><div class="lb">Not updated today</div></div>
+      </div>
+
+      <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+        <h2 class="section-title" style="margin-bottom:0;">Quick notes</h2>
+        <button class="btn-ghost" id="qn-toggle-all" style="display:none; padding:2px 4px; font-size:12px;" onclick="toggleQnShowAll()">Show all</button>
+      </div>
+      <div id="home-quicknotes-list"></div>
+
+      <h2 class="section-title">Today's patients</h2>
+      <div id="home-patient-list"></div>
+    </section>
+
+    <!-- PATIENTS -->
+    <section class="view" id="view-patients">
+      <h2 class="section-title top">Patients</h2>
+      <div class="searchbar">
+        <span class="ic">&#128269;</span>
+        <input id="patient-search" placeholder="Search name, BHT or bed" oninput="renderPatients()">
+      </div>
+      <div class="chip-row" id="patient-filters">
+        <div class="chip active" data-filter="all" onclick="setFilter('all')">All</div>
+        <div class="chip" data-filter="today" onclick="setFilter('today')">Today</div>
+        <div class="chip" data-filter="admitted" onclick="setFilter('admitted')">Inpatient</div>
+        <div class="chip" data-filter="discharged" onclick="setFilter('discharged')">Discharged</div>
+      </div>
+      <div id="patients-list"></div>
+      <button class="fab" onclick="openNewPatient()" aria-label="New patient">&#10133;</button>
+    </section>
+
+    <!-- PATIENT PROFILE -->
+    <section class="view" id="view-profile"></section>
+
+    <!-- AYURVEDA -->
+    <section class="view" id="view-ayurveda">
+      <div id="ayurveda-body"></div>
+    </section>
+
+    <!-- KNOWLEDGE -->
+    <section class="view" id="view-knowledge">
+      <div id="knowledge-body"></div>
+    </section>
+
+    <!-- TOOLS -->
+    <section class="view" id="view-tools">
+      <h2 class="section-title top">Tools</h2>
+      <div class="tool-row">
+        <div class="tinfo"><div class="tt">Export backup</div><div class="ts">Download all data as JSON</div></div>
+        <button class="btn" onclick="exportBackup()">Export</button>
+      </div>
+      <div class="tool-row">
+        <div class="tinfo"><div class="tt">Restore backup</div><div class="ts">Import a previously exported JSON file</div></div>
+        <button class="btn" onclick="document.getElementById('import-file').click()">Import</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importBackup(event)">
+      </div>
+      <div class="tool-row">
+        <div class="tinfo"><div class="tt">Patients stored</div><div class="ts" id="tool-count">0 records, locally on this device</div></div>
+      </div>
+      <div class="tool-row">
+        <div class="tinfo"><div class="tt" style="color:var(--danger)">Delete all data</div><div class="ts">Cannot be undone — export a backup first</div></div>
+        <button class="btn btn-danger" onclick="confirmDeleteAll()">Delete</button>
+      </div>
+      <p class="subtle" style="margin-top:18px;">All data stays on this device and nothing is sent to any server \u2014 with one exception: the "Scan BHT to autofill" option sends the photos you choose to Claude to read the text, then discards them. This is a documentation and reference tool, not a diagnostic system.</p>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="home" onclick="goto('home')"><span class="ic">&#127968;</span>Home</button>
+    <button class="tab" data-view="patients" onclick="goto('patients')"><span class="ic">&#128118;</span>Patients</button>
+    <button class="tab" data-view="ayurveda" onclick="goto('ayurveda')"><span class="ic">&#127807;</span>Ayurveda</button>
+    <button class="tab" data-view="knowledge" onclick="goto('knowledge')"><span class="ic">&#128218;</span>Knowledge</button>
+    <button class="tab" data-view="tools" onclick="goto('tools')"><span class="ic">&#128295;</span>Tools</button>
+  </nav>
+</div>
+
+<!-- NEW PATIENT MODAL -->
+<div class="modal-backdrop" id="modal-new-patient">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <div class="modal-title">New patient</div>
+      <button class="close-x" onclick="closeModal('modal-new-patient')">&#10005;</button>
+    </div>
+    <form id="new-patient-form" onsubmit="return submitNewPatient(event)">
+      <div class="scan-bht-box">
+        <button type="button" class="btn btn-block" onclick="triggerBhtScan()">&#128247; Scan BHT to autofill</button>
+        <p class="subtle" id="bht-scan-caption" style="margin:6px 0 0;">Photos are sent to Claude to read the text &mdash; not stored by BalaCare. Always review extracted details before saving.</p>
+        <input type="file" id="bht-scan-input" accept="image/*" capture="environment" multiple style="display:none" onchange="handleBhtScan(event)">
+      </div>
+      <div class="field"><label>Name</label><input type="text" id="np-name" required></div>
+      <div class="field"><label>Date of birth</label><input type="date" id="np-dob" onchange="npDobChanged()"></div>
+      <div class="field"><label>Age (if DOB unknown)</label><input type="text" id="np-age" placeholder="e.g. 3y 4m"></div>
+      <div class="field">
+        <label>Sex</label>
+        <div class="seg" id="np-sex">
+          <button type="button" data-v="Male" onclick="segPick('np-sex',this)">Male</button>
+          <button type="button" data-v="Female" onclick="segPick('np-sex',this)">Female</button>
+          <button type="button" data-v="Other" onclick="segPick('np-sex',this)">Other</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Bed number</label><input type="text" id="np-bed"></div>
+        <div class="field"><label>BHT / indoor no.</label><input type="text" id="np-bht"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>OPD reg. no.</label><input type="text" id="np-opd"></div>
+        <div class="field"><label>Date of admission</label><input type="date" id="np-admission"></div>
+      </div>
+      <div class="field"><label>Mother / guardian</label><input type="text" id="np-guardian"></div>
+      <div class="field"><label>Condition / diagnosis label</label><input type="text" id="np-condition"></div>
+      <button type="button" class="btn-ghost" id="more-details-toggle" onclick="toggleMoreDetails()">+ Add more details</button>
+      <div id="more-details" style="display:none;">
+        <div class="field"><label>Case record number</label><input type="text" id="np-caserecord"></div>
+        <div class="field"><label>Clinical rotation</label><input type="text" id="np-rotation"></div>
+        <div class="field"><label>Address</label><input type="text" id="np-address"></div>
+        <div class="field-row">
+          <div class="field"><label>Religion</label><input type="text" id="np-religion"></div>
+          <div class="field"><label>Nationality</label><input type="text" id="np-nationality"></div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Save patient</button>
+    </form>
+  </div>
+</div>
+
+<!-- QUICK KNOWLEDGE MODAL -->
+<div class="modal-backdrop" id="modal-quick-knowledge">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <div class="modal-title">Quick knowledge</div>
+      <button class="close-x" onclick="closeModal('modal-quick-knowledge')">&#10005;</button>
+    </div>
+    <form id="quick-knowledge-form" onsubmit="return submitQuickKnowledge(event)">
+      <div class="field"><label>Title</label><input type="text" id="qk-title" required></div>
+      <div class="field">
+        <label>Category</label>
+        <select id="qk-category"></select>
+      </div>
+      <div class="field"><label>What I learned</label><textarea id="qk-learned" rows="3" required></textarea></div>
+      <div class="field"><label>Tags (comma-separated)</label><input type="text" id="qk-tags" placeholder="e.g. fever, kashaya, infant"></div>
+      <button type="button" class="btn-ghost" id="qk-more-toggle" onclick="toggleQkMore()">+ Add more details</button>
+      <div id="qk-more" style="display:none;">
+        <div class="field"><label>Useful for</label><textarea id="qk-usefulfor" rows="2" placeholder="When or where this is useful"></textarea></div>
+        <div class="field"><label>Source</label><input type="text" id="qk-source"></div>
+        <div class="field"><label>Date</label><input type="date" id="qk-date"></div>
+      </div>
+      <div class="field" style="display:flex; align-items:center; gap:8px;">
+        <button type="button" class="fav-toggle" id="qk-fav-btn" onclick="toggleQkFav()">&#9734;</button>
+        <span style="font-size:12.5px; color:var(--ink-soft);">Mark as favorite</span>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Save note</button>
+    </form>
+  </div>
+</div>
+
+<!-- QUICK NOTE MODAL -->
+<div class="modal-backdrop" id="modal-quick-note">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <div class="modal-title">Quick note</div>
+      <button class="close-x" onclick="closeModal('modal-quick-note')">&#10005;</button>
+    </div>
+    <form id="quick-note-form" onsubmit="return submitQuickNote(event)">
+      <div class="field"><label>Note</label><textarea id="qn-text" rows="3" required autofocus placeholder="Jot something down quickly&hellip;"></textarea></div>
+      <div class="field">
+        <label>Link to a patient (optional)</label>
+        <select id="qn-patient"><option value="">No specific patient &mdash; general note</option></select>
+      </div>
+      <div class="field" style="display:flex; align-items:center; gap:8px;">
+        <button type="button" class="fav-toggle" id="qn-flag-btn" onclick="toggleQnFlag()">&#128257;</button>
+        <span style="font-size:12.5px; color:var(--ink-soft);">Flag for follow-up</span>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Save note</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- state ---------- */
+let db = null;
+let patients = [];
+let currentFilter = 'all';
+let currentPatientId = null;
+let segState = {};
+
+/* ---------- db ---------- */
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('balacare', 7);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('patients')){
+        const store = d.createObjectStore('patients', { keyPath:'id' });
+        store.createIndex('name', 'name', { unique:false });
+      }
+      if(!d.objectStoreNames.contains('events')){
+        d.createObjectStore('events', { keyPath:'id' });
+      }
+      if(!d.objectStoreNames.contains('caseHistories')){
+        d.createObjectStore('caseHistories', { keyPath:'patientId' });
+      }
+      if(!d.objectStoreNames.contains('examinations')){
+        const ex = d.createObjectStore('examinations', { keyPath:'id' });
+        ex.createIndex('patientId', 'patientId', { unique:false });
+      }
+      if(!d.objectStoreNames.contains('progressNotes')){
+        const pn = d.createObjectStore('progressNotes', { keyPath:'id' });
+        pn.createIndex('patientId', 'patientId', { unique:false });
+      }
+      if(!d.objectStoreNames.contains('growthRecords')){
+        const gr = d.createObjectStore('growthRecords', { keyPath:'id' });
+        gr.createIndex('patientId', 'patientId', { unique:false });
+      }
+      if(!d.objectStoreNames.contains('milestones')){
+        d.createObjectStore('milestones', { keyPath:'patientId' });
+      }
+      if(!d.objectStoreNames.contains('specialAssessments')){
+        const sa = d.createObjectStore('specialAssessments', { keyPath:'id' });
+        sa.createIndex('patientId', 'patientId', { unique:false });
+      }
+      if(!d.objectStoreNames.contains('libraryItems')){
+        const li = d.createObjectStore('libraryItems', { keyPath:'id' });
+        li.createIndex('category', 'category', { unique:false });
+      }
+      if(!d.objectStoreNames.contains('treatmentRecords')){
+        const tr = d.createObjectStore('treatmentRecords', { keyPath:'id' });
+        tr.createIndex('patientId', 'patientId', { unique:false });
+      }
+      if(!d.objectStoreNames.contains('knowledgeNotes')){
+        d.createObjectStore('knowledgeNotes', { keyPath:'id' });
+      }
+      if(!d.objectStoreNames.contains('quickNotes')){
+        d.createObjectStore('quickNotes', { keyPath:'id' });
+      }
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function txStore(name, mode){
+  return db.transaction(name, mode).objectStore(name);
+}
+
+function dbGetAll(storeName){
+  return new Promise((resolve, reject) => {
+    const req = txStore(storeName,'readonly').getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbPut(storeName, obj){
+  return new Promise((resolve, reject) => {
+    const req = txStore(storeName,'readwrite').put(obj);
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbDelete(storeName, id){
+  return new Promise((resolve, reject) => {
+    const req = txStore(storeName,'readwrite').delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbClear(storeName){
+  return new Promise((resolve, reject) => {
+    const req = txStore(storeName,'readwrite').clear();
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbGetByIndex(storeName, indexName, value){
+  return new Promise((resolve, reject) => {
+    const req = txStore(storeName,'readonly').index(indexName).getAll(value);
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = (e) => reject(e);
+  });
+}
+function dbGetKey(storeName, key){
+  return new Promise((resolve, reject) => {
+    const req = txStore(storeName,'readonly').get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+/* in-memory fallback if IndexedDB is unavailable in this environment */
+let memoryMode = false;
+let memPatients = [];
+let memEvents = [];
+let memCaseHistories = [];
+let memExaminations = [];
+let memProgressNotes = [];
+
+async function loadAllPatients(){
+  if(memoryMode) return memPatients.slice();
+  return await dbGetAll('patients');
+}
+async function loadAllEvents(){
+  if(memoryMode) return memEvents.slice();
+  return await dbGetAll('events');
+}
+async function savePatient(p){
+  if(memoryMode){
+    const i = memPatients.findIndex(x=>x.id===p.id);
+    if(i>=0) memPatients[i]=p; else memPatients.push(p);
+    return;
+  }
+  return await dbPut('patients', p);
+}
+async function saveEvent(ev){
+  if(memoryMode){ memEvents.push(ev); return; }
+  return await dbPut('events', ev);
+}
+async function deletePatientRecord(id){
+  if(memoryMode){ memPatients = memPatients.filter(x=>x.id!==id); return; }
+  return await dbDelete('patients', id);
+}
+async function clearAllData(){
+  if(memoryMode){ memPatients=[]; memEvents=[]; memCaseHistories=[]; memExaminations=[]; memProgressNotes=[]; memGrowthRecords=[]; memMilestones=[]; memSpecialAssessments=[]; memLibraryItems=[]; memTreatmentRecords=[]; memKnowledgeNotes=[]; memQuickNotes=[]; return; }
+  await dbClear('patients');
+  await dbClear('events');
+  await dbClear('caseHistories');
+  await dbClear('examinations');
+  await dbClear('progressNotes');
+  await dbClear('growthRecords');
+  await dbClear('milestones');
+  await dbClear('specialAssessments');
+  await dbClear('libraryItems');
+  await dbClear('treatmentRecords');
+  await dbClear('knowledgeNotes');
+  await dbClear('quickNotes');
+}
+
+/* case history: one active record per patient */
+async function getCaseHistory(patientId){
+  if(memoryMode) return memCaseHistories.find(c=>c.patientId===patientId) || null;
+  return await dbGetKey('caseHistories', patientId);
+}
+async function saveCaseHistory(ch){
+  if(memoryMode){
+    const i = memCaseHistories.findIndex(c=>c.patientId===ch.patientId);
+    if(i>=0) memCaseHistories[i]=ch; else memCaseHistories.push(ch);
+    return;
+  }
+  return await dbPut('caseHistories', ch);
+}
+
+/* examinations: many per patient */
+async function getExaminations(patientId){
+  if(memoryMode) return memExaminations.filter(e=>e.patientId===patientId);
+  return await dbGetByIndex('examinations','patientId', patientId);
+}
+async function saveExamination(ex){
+  if(memoryMode){
+    const i = memExaminations.findIndex(e=>e.id===ex.id);
+    if(i>=0) memExaminations[i]=ex; else memExaminations.push(ex);
+    return;
+  }
+  return await dbPut('examinations', ex);
+}
+
+/* progress notes: many per patient */
+async function getProgressNotes(patientId){
+  if(memoryMode) return memProgressNotes.filter(n=>n.patientId===patientId);
+  return await dbGetByIndex('progressNotes','patientId', patientId);
+}
+async function saveProgressNote(note){
+  if(memoryMode){
+    const i = memProgressNotes.findIndex(n=>n.id===note.id);
+    if(i>=0) memProgressNotes[i]=note; else memProgressNotes.push(note);
+    return;
+  }
+  return await dbPut('progressNotes', note);
+}
+
+/* growth records: many per patient */
+let memGrowthRecords = [];
+let memMilestones = [];
+async function getGrowthRecords(patientId){
+  if(memoryMode) return memGrowthRecords.filter(g=>g.patientId===patientId);
+  return await dbGetByIndex('growthRecords','patientId', patientId);
+}
+async function saveGrowthRecord(rec){
+  if(memoryMode){
+    const i = memGrowthRecords.findIndex(g=>g.id===rec.id);
+    if(i>=0) memGrowthRecords[i]=rec; else memGrowthRecords.push(rec);
+    return;
+  }
+  return await dbPut('growthRecords', rec);
+}
+
+/* milestones: one active record per patient */
+async function getMilestones(patientId){
+  if(memoryMode) return memMilestones.find(m=>m.patientId===patientId) || null;
+  return await dbGetKey('milestones', patientId);
+}
+async function saveMilestones(rec){
+  if(memoryMode){
+    const i = memMilestones.findIndex(m=>m.patientId===rec.patientId);
+    if(i>=0) memMilestones[i]=rec; else memMilestones.push(rec);
+    return;
+  }
+  return await dbPut('milestones', rec);
+}
+
+/* special assessments: autism/ADHD and muscular dystrophy, many per patient (filtered by type) */
+let memSpecialAssessments = [];
+async function getSpecialAssessments(patientId){
+  if(memoryMode) return memSpecialAssessments.filter(s=>s.patientId===patientId);
+  return await dbGetByIndex('specialAssessments','patientId', patientId);
+}
+async function saveSpecialAssessment(rec){
+  if(memoryMode){
+    const i = memSpecialAssessments.findIndex(s=>s.id===rec.id);
+    if(i>=0) memSpecialAssessments[i]=rec; else memSpecialAssessments.push(rec);
+    return;
+  }
+  return await dbPut('specialAssessments', rec);
+}
+
+/* ayurveda library items, filtered by category */
+let memLibraryItems = [];
+async function getLibraryItems(category){
+  if(memoryMode) return memLibraryItems.filter(l=>l.category===category);
+  return await dbGetByIndex('libraryItems','category', category);
+}
+async function getAllLibraryItems(){
+  if(memoryMode) return memLibraryItems.slice();
+  return await dbGetAll('libraryItems');
+}
+async function saveLibraryItem(item){
+  if(memoryMode){
+    const i = memLibraryItems.findIndex(l=>l.id===item.id);
+    if(i>=0) memLibraryItems[i]=item; else memLibraryItems.push(item);
+    return;
+  }
+  return await dbPut('libraryItems', item);
+}
+async function deleteLibraryItem(id){
+  if(memoryMode){ memLibraryItems = memLibraryItems.filter(l=>l.id!==id); return; }
+  return await dbDelete('libraryItems', id);
+}
+
+/* patient treatment records */
+let memTreatmentRecords = [];
+async function getTreatmentRecords(patientId){
+  if(memoryMode) return memTreatmentRecords.filter(t=>t.patientId===patientId);
+  return await dbGetByIndex('treatmentRecords','patientId', patientId);
+}
+async function saveTreatmentRecord(rec){
+  if(memoryMode){
+    const i = memTreatmentRecords.findIndex(t=>t.id===rec.id);
+    if(i>=0) memTreatmentRecords[i]=rec; else memTreatmentRecords.push(rec);
+    return;
+  }
+  return await dbPut('treatmentRecords', rec);
+}
+
+/* knowledge notes */
+let memKnowledgeNotes = [];
+async function getAllKnowledgeNotes(){
+  if(memoryMode) return memKnowledgeNotes.slice();
+  return await dbGetAll('knowledgeNotes');
+}
+async function saveKnowledgeNote(note){
+  if(memoryMode){
+    const i = memKnowledgeNotes.findIndex(n=>n.id===note.id);
+    if(i>=0) memKnowledgeNotes[i]=note; else memKnowledgeNotes.push(note);
+    return;
+  }
+  return await dbPut('knowledgeNotes', note);
+}
+async function deleteKnowledgeNote(id){
+  if(memoryMode){ memKnowledgeNotes = memKnowledgeNotes.filter(n=>n.id!==id); return; }
+  return await dbDelete('knowledgeNotes', id);
+}
+
+/* quick notes (ward scratchpad) */
+let memQuickNotes = [];
+async function getAllQuickNotes(){
+  if(memoryMode) return memQuickNotes.slice();
+  return await dbGetAll('quickNotes');
+}
+async function saveQuickNote(note){
+  if(memoryMode){
+    const i = memQuickNotes.findIndex(n=>n.id===note.id);
+    if(i>=0) memQuickNotes[i]=note; else memQuickNotes.push(note);
+    return;
+  }
+  return await dbPut('quickNotes', note);
+}
+async function deleteQuickNote(id){
+  if(memoryMode){ memQuickNotes = memQuickNotes.filter(n=>n.id!==id); return; }
+  return await dbDelete('quickNotes', id);
+}
+
+/* ---------- utils ---------- */
+function uid(){ return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+}
+function ageFromDob(dob){
+  if(!dob) return '';
+  const b = new Date(dob+'T00:00:00');
+  const now = new Date();
+  let months = (now.getFullYear()-b.getFullYear())*12 + (now.getMonth()-b.getMonth());
+  if(now.getDate() < b.getDate()) months -= 1;
+  if(months < 0) return '';
+  const y = Math.floor(months/12), m = months%12;
+  if(y===0) return m + 'm';
+  if(m===0) return y + 'y';
+  return y + 'y ' + m + 'm';
+}
+function showSaveDot(){
+  const dot = document.getElementById('save-dot');
+  dot.classList.add('saving');
+  setTimeout(()=>dot.classList.remove('saving'), 500);
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ---------- navigation ---------- */
+function goto(view){
+  document.querySelectorAll('section.view').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav.tabbar button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  const tabBtn = document.querySelector('nav.tabbar button[data-view="'+view+'"]');
+  if(tabBtn) tabBtn.classList.add('active');
+  if(view==='home') renderHome();
+  if(view==='patients') renderPatients();
+  if(view==='ayurveda') renderAyurvedaHub();
+  if(view==='knowledge') renderKnowledgeHub();
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ---------- new patient form ---------- */
+function openNewPatient(){
+  document.getElementById('new-patient-form').reset();
+  segState['np-sex'] = '';
+  document.querySelectorAll('#np-sex button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('more-details').style.display = 'none';
+  document.getElementById('more-details-toggle').textContent = '+ Add more details';
+  const caption = document.getElementById('bht-scan-caption');
+  caption.className = 'subtle';
+  caption.textContent = 'Photos are sent to Claude to read the text \u2014 not stored by BalaCare. Always review extracted details before saving.';
+  openModal('modal-new-patient');
+}
+function segPick(groupId, btn){
+  document.querySelectorAll('#'+groupId+' button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  segState[groupId] = btn.dataset.v;
+}
+function npDobChanged(){
+  const dob = document.getElementById('np-dob').value;
+  if(dob) document.getElementById('np-age').value = ageFromDob(dob);
+}
+function toggleMoreDetails(){
+  const el = document.getElementById('more-details');
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('more-details-toggle').textContent = isOpen ? '+ Add more details' : '\u2212 Hide details';
+}
+
+/* ---------- BHT photo scan (autofill via Claude vision) ---------- */
+function triggerBhtScan(){
+  document.getElementById('bht-scan-input').click();
+}
+
+function fileToImageBlock(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = String(reader.result).split(',')[1];
+      resolve({ type:'image', source:{ type:'base64', media_type: file.type || 'image/jpeg', data: base64 } });
+    };
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleBhtScan(evt){
+  const files = Array.from(evt.target.files || []).slice(0, 5);
+  evt.target.value = '';
+  if(files.length===0) return;
+  const caption = document.getElementById('bht-scan-caption');
+  caption.className = 'subtle scanning';
+  caption.textContent = 'Reading ' + files.length + ' photo' + (files.length>1?'s':'') + '\u2026';
+
+  try{
+    const imageBlocks = await Promise.all(files.map(fileToImageBlock));
+    const instructions = 'You are extracting structured patient-admission data from photographed pediatric hospital Bed Head Ticket (BHT) documents. The photos may show different pages or angles of the same document, including handwriting. Return ONLY a single raw JSON object \u2014 no markdown code fences, no commentary before or after \u2014 with exactly these keys:\n' +
+      '{"name":"","dob":"YYYY-MM-DD or empty","ageManual":"","sex":"Male or Female or Other or empty","bed":"","bht":"","opdNo":"","admissionDate":"YYYY-MM-DD or empty","guardian":"","condition":"","caseRecordNo":"","rotation":"","address":"","religion":"","nationality":""}\n' +
+      'If any field is not clearly legible or not present in the photos, leave it as an empty string. Never guess or invent a value.';
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role:'user', content: [...imageBlocks, { type:'text', text: instructions }] }]
+      })
+    });
+    if(!response.ok) throw new Error('API error ' + response.status);
+    const data = await response.json();
+    const textBlock = (data.content||[]).find(b=>b.type==='text');
+    if(!textBlock) throw new Error('No text in response');
+    const cleaned = textBlock.text.replace(/```json|```/g,'').trim();
+    const fields = JSON.parse(cleaned);
+    const filledCount = applyBhtScanResult(fields);
+    caption.className = 'subtle scan-success';
+    caption.textContent = filledCount>0
+      ? 'Filled ' + filledCount + ' field' + (filledCount>1?'s':'') + ' from the photo \u2014 please review carefully before saving.'
+      : 'Could not confidently read any fields \u2014 please enter details manually.';
+  }catch(err){
+    caption.className = 'subtle scan-error';
+    caption.textContent = 'Could not read that photo. Check your connection and try again, or enter details manually.';
+  }
+}
+
+function applyBhtScanResult(f){
+  let count = 0;
+  const setVal = (id, val) => { if(val){ document.getElementById(id).value = val; count++; } };
+  setVal('np-name', f.name);
+  if(f.dob){ document.getElementById('np-dob').value = f.dob; npDobChanged(); count++; }
+  else setVal('np-age', f.ageManual);
+  if(f.sex){
+    const btn = document.querySelector('#np-sex button[data-v="'+f.sex+'"]');
+    if(btn){ segPick('np-sex', btn); count++; }
+  }
+  setVal('np-bed', f.bed);
+  setVal('np-bht', f.bht);
+  setVal('np-opd', f.opdNo);
+  setVal('np-admission', f.admissionDate);
+  setVal('np-guardian', f.guardian);
+  setVal('np-condition', f.condition);
+  const hasMore = f.caseRecordNo || f.rotation || f.address || f.religion || f.nationality;
+  if(hasMore){
+    setVal('np-caserecord', f.caseRecordNo);
+    setVal('np-rotation', f.rotation);
+    setVal('np-address', f.address);
+    setVal('np-religion', f.religion);
+    setVal('np-nationality', f.nationality);
+    const moreEl = document.getElementById('more-details');
+    if(moreEl.style.display==='none') toggleMoreDetails();
+  }
+  return count;
+}
+
+async function submitNewPatient(e){
+  e.preventDefault();
+  const name = document.getElementById('np-name').value.trim();
+  if(!name){ toast('Enter a patient name'); return false; }
+  const now = new Date().toISOString();
+  const p = {
+    id: uid(),
+    createdAt: now,
+    updatedAt: now,
+    name: name,
+    dob: document.getElementById('np-dob').value || '',
+    ageManual: document.getElementById('np-age').value.trim(),
+    sex: segState['np-sex'],
+    bed: document.getElementById('np-bed').value.trim(),
+    bht: document.getElementById('np-bht').value.trim(),
+    opdNo: document.getElementById('np-opd').value.trim(),
+    admissionDate: document.getElementById('np-admission').value || todayStr(),
+    guardian: document.getElementById('np-guardian').value.trim(),
+    condition: document.getElementById('np-condition').value.trim(),
+    caseRecordNo: document.getElementById('np-caserecord').value.trim(),
+    rotation: document.getElementById('np-rotation').value.trim(),
+    address: document.getElementById('np-address').value.trim(),
+    religion: document.getElementById('np-religion').value.trim(),
+    nationality: document.getElementById('np-nationality').value.trim(),
+    status: 'admitted'
+  };
+  await savePatient(p);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId:p.id, type:'created', text:'Patient record created', ts: now });
+  showSaveDot();
+  patients = await loadAllPatients();
+  closeModal('modal-new-patient');
+  toast('Patient saved');
+  goto('patients');
+}
+
+/* ---------- patients list ---------- */
+function setFilter(f){
+  currentFilter = f;
+  document.querySelectorAll('#patient-filters .chip').forEach(c=>c.classList.toggle('active', c.dataset.filter===f));
+  renderPatients();
+}
+
+function filteredPatients(){
+  const q = (document.getElementById('patient-search')?.value || '').trim().toLowerCase();
+  let list = patients.slice().sort((a,b)=> (b.updatedAt||'').localeCompare(a.updatedAt||''));
+  if(currentFilter==='today') list = list.filter(p=>p.admissionDate===todayStr());
+  if(currentFilter==='admitted') list = list.filter(p=>p.status==='admitted');
+  if(currentFilter==='discharged') list = list.filter(p=>p.status==='discharged');
+  if(q){
+    list = list.filter(p =>
+      (p.name||'').toLowerCase().includes(q) ||
+      (p.bht||'').toLowerCase().includes(q) ||
+      (p.bed||'').toLowerCase().includes(q) ||
+      (p.opdNo||'').toLowerCase().includes(q)
+    );
+  }
+  return list;
+}
+
+function patientCardHTML(p){
+  const age = p.dob ? ageFromDob(p.dob) : p.ageManual;
+  const sub = [age, p.sex, p.bht?('BHT '+p.bht):''].filter(Boolean).join(' \u00b7 ');
+  const bedLabel = p.bed || '\u2013';
+  const statusClass = p.status==='discharged' ? 'discharged' : '';
+  const statusLabel = p.status==='discharged' ? 'Discharged' : 'Inpatient';
+  return `<div class="patient-card" onclick="openProfile('${p.id}')">
+      <div class="bed">${escapeHTML(bedLabel)}</div>
+      <div class="info">
+        <div class="name">${escapeHTML(p.name)}</div>
+        <div class="sub">${escapeHTML(sub || 'No details yet')}</div>
+      </div>
+      <div class="status-pill ${statusClass}">${statusLabel}</div>
+    </div>`;
+}
+
+function escapeHTML(s){
+  return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderPatients(){
+  const list = filteredPatients();
+  const container = document.getElementById('patients-list');
+  if(list.length===0){
+    container.innerHTML = `<div class="empty-state">
+        <span class="ic">&#128118;</span>
+        <div class="headline">No patients here yet</div>
+        <div class="body">Add your first patient of the day to start the ward record.</div>
+      </div>`;
+    return;
+  }
+  container.innerHTML = list.map(patientCardHTML).join('');
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString(undefined,{weekday:'short', day:'numeric', month:'short'});
+  const today = patients.filter(p=>p.admissionDate===todayStr() && p.status==='admitted');
+  document.getElementById('stat-today').textContent = today.length;
+  const todayDateStr = todayStr();
+  const notUpdated = patients.filter(p=>p.status==='admitted' && (p.updatedAt||'').slice(0,10) !== todayDateStr);
+  document.getElementById('stat-pending').textContent = notUpdated.length;
+  renderQuickNotesHome();
+  const list = patients.filter(p=>p.status==='admitted').sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')).slice(0,5);
+  const container = document.getElementById('home-patient-list');
+  if(list.length===0){
+    container.innerHTML = `<div class="empty-state">
+        <span class="ic">&#127807;</span>
+        <div class="headline">Ward is clear</div>
+        <div class="body">New patients you add will show up here for quick access.</div>
+      </div>`;
+    return;
+  }
+  container.innerHTML = list.map(patientCardHTML).join('');
+}
+
+/* ---------- quick notes (ward scratchpad) ---------- */
+let qnFlagPick = false;
+let qnShowAll = false;
+
+function openQuickNote(){
+  document.getElementById('quick-note-form').reset();
+  qnFlagPick = false;
+  const flagBtn = document.getElementById('qn-flag-btn');
+  flagBtn.classList.remove('active'); flagBtn.innerHTML = '&#128257;';
+  const sel = document.getElementById('qn-patient');
+  const admitted = patients.filter(p=>p.status==='admitted').sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML = '<option value="">No specific patient \u2014 general note</option>' +
+    admitted.map(p=>`<option value="${p.id}">${escapeHTML((p.bed?'Bed '+p.bed+' \u2014 ':'')+p.name)}</option>`).join('');
+  openModal('modal-quick-note');
+}
+
+function toggleQnFlag(){
+  qnFlagPick = !qnFlagPick;
+  const btn = document.getElementById('qn-flag-btn');
+  btn.classList.toggle('active', qnFlagPick);
+}
+
+async function submitQuickNote(e){
+  e.preventDefault();
+  const text = document.getElementById('qn-text').value.trim();
+  if(!text){ toast('Write something first'); return false; }
+  const patientId = document.getElementById('qn-patient').value || null;
+  const now = new Date().toISOString();
+  const note = { id: uid(), text, patientId, flagged: qnFlagPick, resolved:false, createdAt: now };
+  await saveQuickNote(note);
+  if(patientId){
+    await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId, type:'quicknote', text:'Quick note: '+text, ts: now });
+    const p = patients.find(x=>x.id===patientId); if(p){ p.updatedAt = now; await savePatient(p); patients = await loadAllPatients(); }
+  }
+  showSaveDot();
+  closeModal('modal-quick-note');
+  toast('Note saved');
+  renderHome();
+}
+
+async function renderQuickNotesHome(){
+  const all = (await getAllQuickNotes()).sort((a,b)=> (a.resolved?1:0)-(b.resolved?1:0) || (b.createdAt||'').localeCompare(a.createdAt||''));
+  const container = document.getElementById('home-quicknotes-list');
+  const toggleBtn = document.getElementById('qn-toggle-all');
+  const unresolvedCount = all.filter(n=>!n.resolved).length;
+
+  if(all.length===0){
+    toggleBtn.style.display = 'none';
+    container.innerHTML = `<p class="subtle" style="margin-bottom:18px;">Nothing jotted down yet. Use "Quick note" above for anything you want to remember without opening a full chart.</p>`;
+    return;
+  }
+  toggleBtn.style.display = all.length>4 ? 'inline-block' : 'none';
+  toggleBtn.textContent = qnShowAll ? 'Show less' : 'Show all ('+all.length+')';
+
+  const shown = qnShowAll ? all : (unresolvedCount>0 ? all.filter(n=>!n.resolved).slice(0,4) : all.slice(0,2));
+
+  container.innerHTML = shown.map(n => {
+    const p = n.patientId ? patients.find(x=>x.id===n.patientId) : null;
+    return `<div class="qnote-card ${n.resolved?'resolved':''}">
+        <div class="qn-check" onclick="toggleQnResolved('${n.id}')">&#10003;</div>
+        <div class="qn-body">
+          <div class="qn-text">${escapeHTML(n.text)}</div>
+          <div class="qn-meta">
+            ${n.flagged ? '<span class="qn-flag">&#128257; Follow-up</span>' : ''}
+            ${p ? `<span>${escapeHTML(p.name)}</span>` : '<span>General</span>'}
+            <span>${new Date(n.createdAt).toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+          </div>
+        </div>
+        <button class="qn-del" onclick="removeQuickNote('${n.id}')" aria-label="Delete note">&#10005;</button>
+      </div>`;
+  }).join('');
+}
+
+function toggleQnShowAll(){
+  qnShowAll = !qnShowAll;
+  renderQuickNotesHome();
+}
+
+async function toggleQnResolved(id){
+  const all = await getAllQuickNotes();
+  const note = all.find(n=>n.id===id);
+  if(!note) return;
+  note.resolved = !note.resolved;
+  await saveQuickNote(note);
+  showSaveDot();
+  renderQuickNotesHome();
+}
+
+async function removeQuickNote(id){
+  await deleteQuickNote(id);
+  showSaveDot();
+  renderQuickNotesHome();
+}
+
+/* ---------- profile ---------- */
+async function openProfile(id){
+  currentPatientId = id;
+  await renderProfile();
+  document.querySelectorAll('section.view').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav.tabbar button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-profile').classList.add('active');
+}
+
+async function renderProfile(){
+  const p = patients.find(x=>x.id===currentPatientId);
+  const view = document.getElementById('view-profile');
+  if(!p){ view.innerHTML = '<p class="subtle">Patient not found.</p>'; return; }
+  const age = p.dob ? ageFromDob(p.dob) : p.ageManual;
+  const events = (await loadAllEvents()).filter(e=>e.patientId===p.id).sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+
+  const activeActions = [
+    ['&#128221;','Case history', "openCaseHistory('"+p.id+"')"],
+    ['&#129658;','Examination', "openExamList('"+p.id+"')"],
+    ['&#128200;','Growth & development', "openGrowthDev('"+p.id+"')"],
+    ['&#129504;','Specialized progress', "openSpecializedProgress('"+p.id+"')"],
+    ['&#127807;','Treatment', "openTreatments('"+p.id+"')"],
+    ['&#128218;','Notes', "openProgressNotes('"+p.id+"')"],
+    ['&#128196;','Export PDF', "generatePatientPDF('"+p.id+"')"]
+  ];
+  const disabledActions = [];
+
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="goto('patients')">&#8592; Patients</button>
+    <div class="profile-header">
+      <div class="pname">${escapeHTML(p.name)}</div>
+      <div class="pmeta">${escapeHTML([age,p.sex].filter(Boolean).join(' \u00b7 '))}</div>
+      <div class="pgrid">
+        <div><span class="k">Bed</span><span class="v">${escapeHTML(p.bed||'\u2013')}</span></div>
+        <div><span class="k">BHT</span><span class="v">${escapeHTML(p.bht||'\u2013')}</span></div>
+        <div><span class="k">OPD no.</span><span class="v">${escapeHTML(p.opdNo||'\u2013')}</span></div>
+        <div><span class="k">Admitted</span><span class="v">${escapeHTML(fmtDate(p.admissionDate)||'\u2013')}</span></div>
+        <div><span class="k">Guardian</span><span class="v">${escapeHTML(p.guardian||'\u2013')}</span></div>
+        <div><span class="k">Condition</span><span class="v">${escapeHTML(p.condition||'\u2013')}</span></div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Quick actions</h2>
+    <div class="action-grid">
+      ${activeActions.map(a=>`<button class="qa-btn" onclick="${a[2]}"><span class="ic">${a[0]}</span><span class="lb">${a[1]}</span></button>`).join('')}
+      ${disabledActions.map(a=>`<button class="qa-btn disabled" onclick="toast('Arrives in a later development phase')"><span class="ic">${a[0]}</span><span class="lb">${a[1]}</span></button>`).join('')}
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      ${p.status==='admitted'
+        ? `<button class="btn btn-block" onclick="markDischarged()">Mark discharged</button>`
+        : `<button class="btn btn-block" onclick="markAdmitted()">Mark inpatient</button>`}
+    </div>
+
+    <h2 class="section-title">Timeline</h2>
+    <div id="profile-timeline">
+      ${events.length===0
+        ? `<div class="empty-state"><span class="ic">&#128337;</span><div class="headline">Nothing recorded yet</div><div class="body">Case history, exams and progress notes will appear here once those modules are built.</div></div>`
+        : events.map(e=>`<div class="timeline-item"><div class="dot"></div><div class="tcontent"><div class="ttime">${new Date(e.ts).toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div><div class="ttext">${escapeHTML(e.text)}</div></div></div>`).join('')}
+    </div>
+  `;
+}
+
+async function markDischarged(){
+  const p = patients.find(x=>x.id===currentPatientId);
+  p.status = 'discharged';
+  p.updatedAt = new Date().toISOString();
+  await savePatient(p);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId:p.id, type:'status', text:'Marked as discharged', ts:p.updatedAt });
+  showSaveDot();
+  patients = await loadAllPatients();
+  toast('Marked discharged');
+  await renderProfile();
+}
+async function markAdmitted(){
+  const p = patients.find(x=>x.id===currentPatientId);
+  p.status = 'admitted';
+  p.updatedAt = new Date().toISOString();
+  await savePatient(p);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId:p.id, type:'status', text:'Marked as inpatient', ts:p.updatedAt });
+  showSaveDot();
+  patients = await loadAllPatients();
+  toast('Marked inpatient');
+  await renderProfile();
+}
+
+/* ---------- case history wizard ---------- */
+const CH_STEPS = [
+  { title:'Student & record', fields:[
+      {k:'studentName', label:'Name of student', type:'text'},
+      {k:'regNo', label:'Registration number', type:'text'},
+      {k:'date', label:'Date', type:'date'},
+      {k:'caseRecordNo', label:'Case record number', type:'text'}
+  ]},
+  { title:'Basic information', fields:[
+      {k:'name', label:'Name of patient', type:'text'},
+      {k:'age', label:'Age', type:'text'},
+      {k:'sex', label:'Sex', type:'text'},
+      {k:'guardian', label:'Mother / guardian', type:'text'},
+      {k:'address', label:'Address', type:'text'},
+      {k:'religion', label:'Religion', type:'text'},
+      {k:'nationality', label:'Nationality', type:'text'},
+      {k:'admissionDate', label:'Date of admission', type:'date'},
+      {k:'opdNo', label:'OPD reg. no.', type:'text'},
+      {k:'indoorNo', label:'Indoor reg. no.', type:'text'}
+  ]},
+  { title:'History — general and systemic', fields:[
+      {k:'mukhyaPeeda', label:'Mukhya Peeda — chief complaint with duration', type:'textarea'},
+      {k:'atankaSamuthpaththi', label:'Atanka Samuthpaththi Krama — mode of onset with duration', type:'textarea'},
+      {k:'anyaPeeda', label:'Anya Peeda — other complaints with duration', type:'textarea'},
+      {k:'purvaVyadhi', label:'Purva Vyadhi Vritta — history of previous illnesses', type:'textarea'},
+      {k:'chikithsaVritta', label:'Chikithsa Vritta — treatment history', type:'textarea'},
+      {k:'jeevanavVritta', label:'Jeevanav Vritta — personal history', type:'textarea'}
+  ]},
+  { title:'Birth and pediatric history', fields:[
+      {k:'purvaJanma', label:'Purva Janma — prenatal history', type:'textarea'},
+      {k:'janma', label:'Janma — natal history', type:'textarea'},
+      {k:'pashchatJanma', label:'Pashchat Janma — postnatal history', type:'textarea'},
+      {k:'rakshaKarma', label:'Raksha Karma — immunization history', type:'textarea'},
+      {k:'vardanaSamvardane', label:'Vardana Samvardane — growth and development', type:'textarea'},
+      {k:'aharaVritta', label:'Ahara Vritta — dietary history', type:'textarea'},
+      {k:'adhyapanaVritta', label:'Adhyapana Vritta — education', type:'textarea'},
+      {k:'samajaArthika', label:'Samaja Arthika Vritta — socio-economic status', type:'textarea'},
+      {k:'paryavaranaVritta', label:'Paryavarana Vritta — environmental history', type:'textarea'},
+      {k:'kulaPravrithi', label:'Kula Pravrithi — family history', type:'textarea'}
+  ]}
+];
+let chDraft = {};
+let chStep = 0;
+let chPatientId = null;
+
+async function openCaseHistory(patientId){
+  chPatientId = patientId;
+  const existing = await getCaseHistory(patientId);
+  if(existing){
+    chDraft = existing;
+  }else{
+    const p = patients.find(x=>x.id===patientId);
+    chDraft = {
+      patientId, date: todayStr(), name:p.name||'', age:(p.dob?ageFromDob(p.dob):p.ageManual)||'',
+      sex:p.sex||'', guardian:p.guardian||'', address:p.address||'', religion:p.religion||'',
+      nationality:p.nationality||'', admissionDate:p.admissionDate||'', opdNo:p.opdNo||'',
+      indoorNo:p.bht||'', caseRecordNo:p.caseRecordNo||''
+    };
+  }
+  chStep = 0;
+  renderCaseHistoryStep();
+}
+
+function captureStepInputs(){
+  const step = CH_STEPS[chStep];
+  step.fields.forEach(f => {
+    const el = document.getElementById('ch-field-'+f.k);
+    if(el) chDraft[f.k] = el.value;
+  });
+}
+
+function renderCaseHistoryStep(){
+  const step = CH_STEPS[chStep];
+  const view = document.getElementById('view-profile');
+  const dots = CH_STEPS.map((s,i)=>`<div class="d ${i<chStep?'done':(i===chStep?'now':'')}"></div>`).join('');
+  const fieldsHTML = step.fields.map(f => {
+    const val = escapeHTML(chDraft[f.k]||'');
+    if(f.type==='textarea'){
+      return `<div class="field"><label>${f.label}</label><textarea id="ch-field-${f.k}" rows="3">${val}</textarea></div>`;
+    }
+    return `<div class="field"><label>${f.label}</label><input type="${f.type}" id="ch-field-${f.k}" value="${val}"></div>`;
+  }).join('');
+
+  view.innerHTML = `
+    <div class="wizard-head">
+      <button class="btn-ghost" onclick="exitCaseHistory()">&#8592; Save & close</button>
+    </div>
+    <div class="step-dots">${dots}</div>
+    <div class="step-label">Case history &middot; step ${chStep+1} of ${CH_STEPS.length}</div>
+    <div class="step-heading">${step.title}</div>
+    <form onsubmit="return false;">
+      ${fieldsHTML}
+    </form>
+    <div class="wizard-nav">
+      ${chStep>0 ? `<button class="btn" onclick="chGoStep(-1)">Back</button>` : ''}
+      ${chStep<CH_STEPS.length-1
+        ? `<button class="btn btn-primary" onclick="chGoStep(1)">Next</button>`
+        : `<button class="btn btn-primary" onclick="finishCaseHistory()">Save case history</button>`}
+    </div>
+  `;
+}
+
+async function chGoStep(dir){
+  captureStepInputs();
+  await saveCaseHistory({ ...chDraft, patientId: chPatientId, updatedAt: new Date().toISOString() });
+  showSaveDot();
+  chStep += dir;
+  renderCaseHistoryStep();
+}
+
+async function finishCaseHistory(){
+  captureStepInputs();
+  const now = new Date().toISOString();
+  await saveCaseHistory({ ...chDraft, patientId: chPatientId, updatedAt: now });
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: chPatientId, type:'history', text:'Case history saved', ts: now });
+  const p = patients.find(x=>x.id===chPatientId); if(p){ p.updatedAt = now; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Case history saved');
+  currentPatientId = chPatientId;
+  await renderProfile();
+}
+
+async function exitCaseHistory(){
+  captureStepInputs();
+  await saveCaseHistory({ ...chDraft, patientId: chPatientId, updatedAt: new Date().toISOString() });
+  showSaveDot();
+  toast('Draft saved');
+  currentPatientId = chPatientId;
+  await renderProfile();
+}
+
+/* ---------- examination ---------- */
+const EXAM_SECTIONS = [
+  { title:'Nadi (pulse)', prefix:'nadi', fields:[['gathi','Gathi — rate'],['yathi','Yathi — rhythm'],['akruthi','Akruthi — volume'],['sanhathi','Sanhathi — arterial condition']] },
+  { title:'Mutra Pariksha (urine)', prefix:'mutra', fields:[['gandha','Gandha — odour'],['swabhawa','Swabhawa — appearance'],['pramana','Pramana — volume'],['varam','Varam — frequency D/N']] },
+  { title:'Mala Pariksha (stool)', prefix:'mala', fields:[['gandha','Gandha — odour'],['swabhawa','Swabhawa — appearance'],['pramana','Pramana — amount'],['varam','Varam — frequency D/N']] },
+  { title:'Jivha (tongue)', prefix:'jivha', fields:[['varna','Varna — colour'],['pramana','Pramana — size'],['swabhawa','Swabhawa — appearance'],['gathi','Gathi — movement']] },
+  { title:'Shabda Pariksha (voice and speech)', prefix:'shabda', fields:[['swara','Swara — voice'],['bhashana','Bhashana — speech'],['anyaShabda','Anya Shabda — other sounds']] },
+  { title:'Sparsha (palpation)', prefix:'sparsha', fields:[['sheethaUshna','Sheethatha / Ushnatha — cold / heat to touch'],['mruduKatina','Mrudutha / Katinatha — smooth / rough'],['utthanaNimna','Utthanatha / Nimnatha — elevation / depression'],['swinnaAswinna','Swinnatha / Aswinnatha — sweating'],['shotha','Shotha — swelling'],['drudaShithila','Drudatha / Shithilatha — hard / soft']] },
+  { title:'Drik (eyes)', prefix:'drik', fields:[['varna','Varna — colour'],['pramana','Pramana — size'],['swabhawa','Swabhawa — appearance'],['gathi','Gathi — movement']] },
+  { title:'Akriti (overall appearance)', prefix:'akriti', fields:[['mukaAkriti','Muka Akriti — head / facial'],['varna','Varna — complexion'],['sankhya','Sankhya — number'],['sanhana','Sanhana — compactness'],['shotha','Shotha — swelling'],['spandana','Spandana — pulsatile'],['cheshta','Cheshta — movements'],['sthithi','Sthithi — posture'],['gathi','Gathi — gait'],['sara','Sara — Rasa/Raktha/Mansa/Medas/Asthi/Majja/Shukra Sara']] }
+];
+const NEURO_SECTIONS = [
+  { title:'Sensory system', prefix:'sensory', fields:[
+      ['touch','Touch',['Responds','No response','Hypersensitive']],
+      ['pain','Pain',['Withdraws','Localizes','No response']],
+      ['temperature','Temperature',['Responds','No response','Hypersensitive']],
+      ['tactileDefensiveness','Tactile defensiveness',['Normal','Avoids touch','Cries with light touch']]
+  ]},
+  { title:'Cerebellar & coordination signs', prefix:'cereb', fields:[
+      ['truncalStability','Truncal stability',['Stable','Unstable','Sway while sitting']],
+      ['reaching','Reaching',['Accurate','Tremulous','Poor control']],
+      ['muscleTone','Muscle tone',['Hypotonia','Normal','Mixed']],
+      ['ataxia','Ataxia',['Present','Absent']]
+  ]},
+  { title:'Gait, posture & gross motor', prefix:'gait', fields:[
+      ['mobility','Mobility',['Rolling','Crawling','Bottom shuffling','Assisted walking','Independent']],
+      ['balance','Balance',['Normal','Poor','Falls easily']],
+      ['headControl','Head control',['Full','Partial','Absent']],
+      ['trunkControl','Trunk control',['Upright','Sways','Falls easily']],
+      ['posture','Posture',['Normal','Scissoring','Arching','Fisting','Opisthotonus']],
+      ['handUse','Hand use',['Bilateral','Unilateral preference','Fisting','Poor grasp']]
+  ]},
+  { title:'Speech and communication', prefix:'speech', fields:[
+      ['vocalization','Vocalization',['Babbles','Words','No sound','Quiet']],
+      ['understanding','Understanding',['Follows commands','Responds to name','No response']],
+      ['expressiveSpeech','Expressive speech',['Normal','Delayed','Absent']],
+      ['nonVerbalCues','Non-verbal cues',['Uses gestures','Eye pointing','No communication']]
+  ]},
+  { title:'Bowel, bladder & feeding', prefix:'bbf', fields:[
+      ['bladderControl','Bladder control',['Normal','Dribbling','Retention','Not expected due to age']],
+      ['bowelControl','Bowel control',['Normal','Constipation','Soiling']],
+      ['feedingAbility','Feeding ability',['Normal suck','Swallow','Gagging','Needs NG/PEG feeding','Oral aversion']]
+  ]},
+  { title:'Final clinical impression', prefix:'impression', fields:[
+      ['cpType','CP type',['Spastic','Hypotonic','Mixed','Ataxic','Dystonic']],
+      ['distribution','Distribution',['Hemiplegic','Diplegic','Quadriplegic','Monoplegic']],
+      ['severity','Severity',['Mild','Moderate','Severe']]
+  ]}
+];
+let examPatientId = null;
+let examCurrent = null;
+let examListType = 'panchendriya';
+
+async function openExamList(patientId, type){
+  examPatientId = patientId;
+  if(type) examListType = type;
+  const all = await getExaminations(patientId);
+  const list = all.filter(e => (e.examType||'panchendriya')===examListType).sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  const view = document.getElementById('view-profile');
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="backToProfile()">&#8592; Patient</button>
+    <h2 class="section-title">Examinations</h2>
+    <div class="subtab-row">
+      <div class="stb ${examListType==='panchendriya'?'active':''}" onclick="openExamList('${patientId}','panchendriya')">Panchendriya</div>
+      <div class="stb ${examListType==='neuro'?'active':''}" onclick="openExamList('${patientId}','neuro')">Neurological</div>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openExamForm(null)">+ New examination</button>
+    <div id="exam-list-items">
+      ${list.length===0
+        ? `<div class="empty-state"><span class="ic">&#129658;</span><div class="headline">No examinations yet</div><div class="body">${examListType==='neuro' ? 'Record the neurological examination during the ward round.' : 'Record the Panchendriya / Ashtasthana examination during the ward round.'}</div></div>`
+        : list.map(e=>`<div class="list-record" onclick="openExamForm('${e.id}')">
+            <div class="lr-top"><span class="lr-date">${new Date(e.ts).toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span></div>
+            <div class="lr-preview">${escapeHTML(e.notes||'Tap to view')}</div>
+          </div>`).join('')}
+    </div>
+  `;
+}
+
+function examFieldHTML(sec, f, examCurrent){
+  const key = sec.prefix+'_'+f[0];
+  const val = examCurrent.fields[key]||'';
+  if(f[2]){
+    const opts = f[2].map(o=>`<option value="${escapeHTML(o)}" ${val===o?'selected':''}>${escapeHTML(o)}</option>`).join('');
+    return `<div class="ef"><label>${f[1]}</label><select id="ex-${key}"><option value="">\u2013</option>${opts}</select></div>`;
+  }
+  return `<div class="ef"><label>${f[1]}</label><input type="text" id="ex-${key}" value="${escapeHTML(val)}"></div>`;
+}
+
+async function openExamForm(examId){
+  let sections;
+  if(examId){
+    const list = await getExaminations(examPatientId);
+    examCurrent = list.find(e=>e.id===examId);
+    examListType = examCurrent.examType || 'panchendriya';
+  }else{
+    examCurrent = { id: uid(), patientId: examPatientId, ts: new Date().toISOString(), examType: examListType, fields:{}, notes:'' };
+  }
+  sections = examCurrent.examType==='neuro' ? NEURO_SECTIONS : EXAM_SECTIONS;
+  const view = document.getElementById('view-profile');
+  const sectionsHTML = sections.map(sec => `
+    <div class="exam-section">
+      <h3>${sec.title}</h3>
+      ${chunk(sec.fields,2).map(row => `<div class="erow">${row.map(f=>examFieldHTML(sec,f,examCurrent)).join('')}</div>`).join('')}
+    </div>
+  `).join('');
+
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="openExamList('${examPatientId}','${examListType}')">&#8592; Examinations</button>
+    <h2 class="section-title">${examCurrent.examType==='neuro' ? 'Neurological examination' : 'Panchendriya / Ashtasthana examination'}</h2>
+    <p class="subtle">${new Date(examCurrent.ts).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})}</p>
+    ${sectionsHTML}
+    <div class="field"><label>Additional notes</label><textarea id="ex-notes" rows="3">${escapeHTML(examCurrent.notes||'')}</textarea></div>
+    <button class="btn btn-primary btn-block" onclick="saveExamForm()">Save examination</button>
+  `;
+}
+
+function chunk(arr, size){
+  const out = [];
+  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
+  return out;
+}
+
+async function saveExamForm(){
+  const sections = examCurrent.examType==='neuro' ? NEURO_SECTIONS : EXAM_SECTIONS;
+  sections.forEach(sec => sec.fields.forEach(f => {
+    const key = sec.prefix+'_'+f[0];
+    const el = document.getElementById('ex-'+key);
+    if(el) examCurrent.fields[key] = el.value;
+  }));
+  examCurrent.notes = document.getElementById('ex-notes').value;
+  await saveExamination(examCurrent);
+  const now = new Date().toISOString();
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: examPatientId, type:'exam', text:(examCurrent.examType==='neuro'?'Neurological examination recorded':'Examination recorded'), ts: now });
+  const p = patients.find(x=>x.id===examPatientId); if(p){ p.updatedAt = now; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Examination saved');
+  openExamList(examPatientId, examCurrent.examType);
+}
+
+/* ---------- progress notes ---------- */
+let notesPatientId = null;
+let notesTagSelection = [];
+
+async function openProgressNotes(patientId){
+  notesPatientId = patientId;
+  notesTagSelection = [];
+  await renderProgressNotesView(false);
+}
+
+async function renderProgressNotesView(showForm){
+  const list = (await getProgressNotes(notesPatientId)).sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  const view = document.getElementById('view-profile');
+  const tags = ['Better','Same','Worse','New symptom'];
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="backToProfile()">&#8592; Patient</button>
+    <h2 class="section-title">Daily progress notes</h2>
+    ${showForm ? `
+      <div class="tag-select" id="note-tags">
+        ${tags.map(t=>`<div class="tg" data-t="${t}" onclick="toggleNoteTag(this)">${t}</div>`).join('')}
+      </div>
+      <div class="field"><label>General condition</label><textarea id="note-condition" rows="2"></textarea></div>
+      <div class="field"><label>Changes since last review</label><textarea id="note-changes" rows="2"></textarea></div>
+      <div class="field"><label>Current treatment</label><textarea id="note-treatment" rows="2"></textarea></div>
+      <div class="field"><label>Response</label><textarea id="note-response" rows="2"></textarea></div>
+      <div class="field"><label>Plan</label><textarea id="note-plan" rows="2"></textarea></div>
+      <button class="btn btn-primary btn-block" onclick="saveProgressNoteForm()">Save note</button>
+    ` : `<button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="renderProgressNotesView(true)">+ Add note</button>`}
+    <div style="margin-top:18px;">
+      ${list.length===0
+        ? `<div class="empty-state"><span class="ic">&#128218;</span><div class="headline">No progress notes yet</div><div class="body">Fast ward-round notes will appear here, newest first.</div></div>`
+        : list.map(n=>`<div class="list-record">
+            <div class="lr-top">
+              <span class="lr-date">${new Date(n.ts).toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+              ${n.tags && n.tags.length ? `<span class="lr-tag ${n.tags[0].toLowerCase().replace(' ','-')}">${escapeHTML(n.tags.join(', '))}</span>` : ''}
+            </div>
+            <div class="lr-preview">${escapeHTML(n.plan || n.response || n.generalCondition || '')}</div>
+          </div>`).join('')}
+    </div>
+  `;
+}
+
+function toggleNoteTag(el){
+  const t = el.dataset.t;
+  const i = notesTagSelection.indexOf(t);
+  if(i>=0) notesTagSelection.splice(i,1); else notesTagSelection.push(t);
+  el.classList.toggle('active');
+}
+
+async function saveProgressNoteForm(){
+  const now = new Date().toISOString();
+  const note = {
+    id: uid(), patientId: notesPatientId, ts: now, tags: notesTagSelection.slice(),
+    generalCondition: document.getElementById('note-condition').value.trim(),
+    changes: document.getElementById('note-changes').value.trim(),
+    currentTreatment: document.getElementById('note-treatment').value.trim(),
+    response: document.getElementById('note-response').value.trim(),
+    plan: document.getElementById('note-plan').value.trim()
+  };
+  await saveProgressNote(note);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: notesPatientId, type:'note', text:'Progress note added'+(note.tags.length?' \u2014 '+note.tags.join(', '):''), ts: now });
+  const p = patients.find(x=>x.id===notesPatientId); if(p){ p.updatedAt = now; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Note saved');
+  notesTagSelection = [];
+  await renderProgressNotesView(false);
+}
+
+function backToProfile(){
+  renderProfile();
+}
+
+/* ---------- PDF export ---------- */
+let jsPdfLoadPromise = null;
+function loadJsPdf(){
+  if(window.jspdf) return Promise.resolve(true);
+  if(jsPdfLoadPromise) return jsPdfLoadPromise;
+  jsPdfLoadPromise = new Promise((resolve) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => { jsPdfLoadPromise = null; resolve(false); };
+    document.head.appendChild(s);
+    setTimeout(() => resolve(!!window.jspdf), 8000);
+  });
+  return jsPdfLoadPromise;
+}
+
+async function generatePatientPDF(patientId){
+  if(!window.jspdf){
+    toast('Loading PDF tools\u2026');
+    const ok = await loadJsPdf();
+    if(!ok || !window.jspdf){ toast('Could not load PDF tools \u2014 check your connection and try again'); return; }
+  }
+  const p = patients.find(x=>x.id===patientId);
+  if(!p){ toast('Patient not found'); return; }
+  const ch = await getCaseHistory(patientId);
+  const exams = (await getExaminations(patientId)).sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  const notes = (await getProgressNotes(patientId)).sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  const growth = (await getGrowthRecords(patientId)).sort((a,b)=>(a.ts||'').localeCompare(b.ts||''));
+  const milestoneRec = await getMilestones(patientId);
+  const specials = await getSpecialAssessments(patientId);
+  const treatments = (await getTreatmentRecords(patientId)).filter(t=>!t.deleted).sort((a,b)=>(b.startDate||'').localeCompare(a.startDate||''));
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 48;
+  let y = margin;
+
+  function newPageIfNeeded(need){
+    if(y + need > pageH - 50){ doc.addPage(); y = margin; }
+  }
+  function heading(text){
+    newPageIfNeeded(28);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(44,78,54);
+    doc.text(text, margin, y); y += 16;
+    doc.setDrawColor(226,220,200); doc.line(margin, y-8, pageW-margin, y-8);
+  }
+  function kv(label, value){
+    if(!value) return;
+    const lines = doc.splitTextToSize(String(value), pageW - margin*2 - 110);
+    newPageIfNeeded(14*lines.length + 4);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(90,100,80);
+    doc.text(label, margin, y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(30,40,30);
+    doc.text(lines, margin+110, y);
+    y += 14*lines.length + 6;
+  }
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(44,78,54);
+  doc.text('BalaCare — patient report', margin, y); y += 20;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,120,110);
+  doc.text('Generated ' + new Date().toLocaleString(), margin, y); y += 22;
+
+  heading('Patient identification');
+  const age = p.dob ? ageFromDob(p.dob) : p.ageManual;
+  kv('Name', p.name); kv('Age / sex', [age,p.sex].filter(Boolean).join(', '));
+  kv('Bed', p.bed); kv('BHT', p.bht); kv('OPD no.', p.opdNo);
+  kv('Admission date', fmtDate(p.admissionDate)); kv('Guardian', p.guardian);
+  kv('Condition', p.condition); kv('Status', p.status==='discharged'?'Discharged':'Inpatient');
+  y += 6;
+
+  if(ch){
+    heading('Case history');
+    CH_STEPS.forEach(step => {
+      step.fields.forEach(f => kv(f.label, ch[f.k]));
+    });
+    y += 6;
+  }
+
+  if(exams.length){
+    heading('Examinations (' + exams.length + ')');
+    exams.forEach(ex => {
+      newPageIfNeeded(16);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(198,124,51);
+      doc.text((ex.examType==='neuro'?'Neurological — ':'Panchendriya — ') + new Date(ex.ts).toLocaleString(), margin, y); y += 13;
+      const secs = ex.examType==='neuro' ? NEURO_SECTIONS : EXAM_SECTIONS;
+      secs.forEach(sec => {
+        sec.fields.forEach(f => {
+          const key = sec.prefix+'_'+f[0];
+          if(ex.fields[key]) kv(sec.title+' — '+f[1], ex.fields[key]);
+        });
+      });
+      if(ex.notes) kv('Notes', ex.notes);
+      y += 4;
+    });
+  }
+
+  if(growth.length){
+    heading('Growth measurements (' + growth.length + ')');
+    kv('Reference', 'WHO Child Growth Standards / WHO 2007 growth reference');
+    growth.forEach(r => {
+      newPageIfNeeded(16);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(198,124,51);
+      doc.text(new Date(r.ts).toLocaleDateString(), margin, y); y += 13;
+      kv('Weight', r.weight!=null ? r.weight+' kg' : '');
+      kv('Height', r.height!=null ? r.height+' cm' : '');
+      kv('BMI', r.bmi!=null ? String(r.bmi) : '');
+      kv('Head circ.', r.headCirc!=null ? r.headCirc+' cm' : '');
+      kv('Chest circ.', r.chestCirc!=null ? r.chestCirc+' cm' : '');
+      kv('Abdominal circ.', r.abdoCirc!=null ? r.abdoCirc+' cm' : '');
+      kv('Mid-arm circ.', r.midArmCirc!=null ? r.midArmCirc+' cm' : '');
+      kv('Dentition', r.dentition); kv('Deha', r.deha); kv('Notes', r.notes);
+      y += 4;
+    });
+  }
+
+  if(milestoneRec){
+    heading('Developmental milestones (Bala Roga)');
+    Object.entries(BALA_MILESTONES).forEach(([domain, def]) => {
+      def.items.forEach((label,i) => {
+        const item = milestoneRec.items[domain+'_'+i];
+        if(item) kv(def.label+' — '+label, item.status + (item.note ? ' ('+item.note+')' : ''));
+      });
+    });
+    y += 6;
+  }
+
+  const aa = specials.find(s=>s.type==='autism_adhd');
+  if(aa){
+    heading('Autism / ADHD weekly progress — ' + AUTISM_TEMPLATES[aa.template].label);
+    AUTISM_TEMPLATES[aa.template].domains.forEach((label,i) => {
+      const key = 'd'+i;
+      const cells = TIMEPOINTS.map(([tk,tl]) => {
+        const c = aa.data[key][tk];
+        return c.score!=null ? tl+': '+c.score : null;
+      }).filter(Boolean).join(', ');
+      if(cells) kv(label, cells);
+    });
+    y += 6;
+  }
+
+  const md = specials.find(s=>s.type==='muscular_dystrophy');
+  if(md){
+    heading('Muscular dystrophy weekly progress');
+    kv('Type of MD', md.mdType); kv('Clinical rotation', md.rotation);
+    TIMEPOINTS.forEach(([tk,tl]) => {
+      const d = md.data[tk];
+      const parts = [];
+      if(d.walk) parts.push('walk '+d.walk+'s');
+      if(d.stair) parts.push('stair '+d.stair+'s');
+      if(d.floorStand) parts.push('floor-stand '+d.floorStand+'s');
+      if(parts.length) kv(tl, parts.join(', '));
+    });
+    kv('Feedback', md.feedback);
+    y += 6;
+  }
+
+  if(treatments.length){
+    heading('Ayurveda treatments (' + treatments.length + ')');
+    treatments.forEach(t => {
+      newPageIfNeeded(16);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(198,124,51);
+      doc.text(t.name + ' \u2014 ' + (t.status||'Continue'), margin, y); y += 13;
+      kv('Category', LIB_CATEGORIES[t.category] ? LIB_CATEGORIES[t.category].label : t.category);
+      kv('Dose', t.dose); kv('Frequency', t.frequency); kv('Anupana', t.anupana); kv('Route', t.route);
+      kv('Start date', fmtDate(t.startDate)); kv('Duration', t.duration); kv('Notes', t.notes);
+      y += 4;
+    });
+  }
+
+  if(notes.length){
+    heading('Daily progress notes (' + notes.length + ')');
+    notes.forEach(n => {
+      newPageIfNeeded(16);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(198,124,51);
+      doc.text(new Date(n.ts).toLocaleString() + (n.tags && n.tags.length ? '  \u2014  ' + n.tags.join(', ') : ''), margin, y); y += 13;
+      kv('Condition', n.generalCondition); kv('Changes', n.changes);
+      kv('Treatment', n.currentTreatment); kv('Response', n.response); kv('Plan', n.plan);
+      y += 4;
+    });
+  }
+
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,140,130);
+    doc.text('BalaCare \u00b7 documentation and reference tool, not a diagnostic record', margin, pageH-30);
+    doc.text('Page ' + i + ' of ' + pageCount, pageW-margin-60, pageH-30);
+  }
+
+  doc.save((p.name||'patient').replace(/[^a-z0-9]+/gi,'_') + '_report.pdf');
+  toast('PDF generated');
+}
+
+/* ---------- growth & development ---------- */
+const GROWTH_FIELDS = [
+  ['weight','Weight (kg)'], ['height','Height / length / CHL (cm)'],
+  ['headCirc','Head circumference (cm)'], ['chestCirc','Chest circumference (cm)'],
+  ['abdoCirc','Abdominal circumference (cm)'], ['midArmCirc','Mid-arm circumference (cm)']
+];
+const BALA_MILESTONES = {
+  grossMotor: { label:'Gross motor', items:['Neck holding','Sitting with support','Sitting without support','Crawling','Standing with support','Walking with support','Walking without support','Running','Walking upstairs','Riding tricycle'] },
+  language: { label:'Language', items:["Turns head to sound","Cooing","Monosyllable ('ma', 'ba')","Bisyllables","Ten words with meaning","Simple sentence","Telling a story"] },
+  social: { label:'Social', items:['Social smile','Recognizing mother','Smiles at mirror image',"Waves 'bye-bye'",'Plays a simple ball game','Knows gender'] }
+};
+const CDC_REFERENCE = [
+  { age:'2 months', points:['Watches your face and follows you with their eyes','Begins to make cooing sounds','Holds head up briefly during tummy time'] },
+  { age:'4 months', points:['Smiles on their own to get your attention','Reaches for a toy with one hand','Holds head steady without support'] },
+  { age:'6 months', points:['Knows familiar faces and begins to know if someone is a stranger','Puts things in their mouth to explore them','Rolls from tummy to back'] },
+  { age:'9 months', points:['Looks when you call their name','Plays games like peekaboo','Sits without support'] },
+  { age:'12 months', points:['Waves bye-bye','Says one or two words such as "mama"','Pulls up to stand and may take steps holding on to furniture'] },
+  { age:'18 months', points:['Points to show you something interesting','Follows one-step directions without a gesture','Walks without holding on'] },
+  { age:'2 years', points:['Points to things in a book when named','Says short two-to-four word phrases','Kicks a ball and begins to run'] },
+  { age:'3 years', points:['Notices other children and joins them in play','Talks in short sentences a stranger could understand about half the time','Climbs well and pedals a tricycle'] },
+  { age:'4 years', points:['Pretends to be something else during play','Says sentences with four or more words','Catches a large ball most of the time'] },
+  { age:'5 years', points:['Follows rules or takes turns when playing games with other children','Tells a short story with full sentences','Hops on one foot'] }
+];
+
+let gdPatientId = null;
+let gdTab = 'growth';
+let gdShowForm = false;
+let gwCurrent = null;
+let mDraft = null;
+
+function bmiOf(weightKg, heightCm){
+  const w = parseFloat(weightKg), h = parseFloat(heightCm);
+  if(!w || !h) return null;
+  const m = h/100;
+  return Math.round((w/(m*m))*10)/10;
+}
+
+function makeSparkline(values, color){
+  const pts = values.filter(v=>v!=null && !isNaN(v));
+  if(pts.length < 2) return `<div class="subtle" style="margin:0;">Not enough measurements yet for a trend line.</div>`;
+  const w = 300, h = 60, pad = 6;
+  const min = Math.min(...pts), max = Math.max(...pts);
+  const range = (max-min) || 1;
+  const stepX = (w - pad*2) / (pts.length-1);
+  const coords = pts.map((v,i) => {
+    const x = pad + i*stepX;
+    const y = pad + (h-pad*2) * (1 - (v-min)/range);
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">
+      <polyline points="${coords}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+}
+
+async function openGrowthDev(patientId){
+  gdPatientId = patientId;
+  gdTab = 'growth';
+  gdShowForm = false;
+  await renderGrowthDev();
+}
+
+async function switchGdTab(tab){
+  gdTab = tab;
+  gdShowForm = false;
+  await renderGrowthDev();
+}
+
+async function renderGrowthDev(){
+  const view = document.getElementById('view-profile');
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="backToProfile()">&#8592; Patient</button>
+    <h2 class="section-title">Growth & development</h2>
+    <div class="subtab-row">
+      <div class="stb ${gdTab==='growth'?'active':''}" onclick="switchGdTab('growth')">Growth</div>
+      <div class="stb ${gdTab==='milestones'?'active':''}" onclick="switchGdTab('milestones')">Milestones</div>
+    </div>
+    <div id="gd-body"></div>
+  `;
+  if(gdTab==='growth') await renderGrowthTab();
+  else await renderMilestonesTab();
+}
+
+async function renderGrowthTab(){
+  const body = document.getElementById('gd-body');
+  const records = (await getGrowthRecords(gdPatientId)).sort((a,b)=>(a.ts||'').localeCompare(b.ts||''));
+  const latest = records[records.length-1];
+  const prev = records[records.length-2];
+
+  function delta(key){
+    if(!latest || !prev || latest[key]==null || prev[key]==null) return '';
+    const d = Math.round((latest[key]-prev[key])*10)/10;
+    if(d===0) return `<div class="gdelta">No change since last</div>`;
+    return `<div class="gdelta ${d>0?'up':'down'}">${d>0?'+':''}${d} since last</div>`;
+  }
+
+  let html = `<div class="ref-note">Reference: WHO Child Growth Standards (birth\u20135y) and the WHO 2007 growth reference (5\u201319y). Figures here are measurements only \u2014 this app does not calculate percentiles or flag results as normal/abnormal.</div>`;
+
+  html += `<div class="growth-summary">
+    <div class="gcard"><div class="glabel">Latest weight</div><div class="gval">${latest && latest.weight!=null ? latest.weight+' kg' : '\u2013'}</div>${delta('weight')}</div>
+    <div class="gcard"><div class="glabel">Latest height</div><div class="gval">${latest && latest.height!=null ? latest.height+' cm' : '\u2013'}</div>${delta('height')}</div>
+    <div class="gcard"><div class="glabel">BMI</div><div class="gval">${latest && latest.bmi!=null ? latest.bmi : '\u2013'}</div></div>
+    <div class="gcard"><div class="glabel">Measured</div><div class="gval" style="font-size:13px;">${latest ? new Date(latest.ts).toLocaleDateString(undefined,{day:'numeric',month:'short'}) : '\u2013'}</div></div>
+  </div>`;
+
+  html += `<div class="sparkline-wrap"><div class="sp-title">Weight trend</div>${makeSparkline(records.map(r=>r.weight), '#3F6B4A')}</div>`;
+  html += `<div class="sparkline-wrap"><div class="sp-title">Height trend</div>${makeSparkline(records.map(r=>r.height), '#C67C33')}</div>`;
+
+  html += gdShowForm ? growthFormHTML(gwCurrent) : `<button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openGrowthForm(null)">+ Add measurement</button>`;
+
+  html += `<h2 class="section-title">Measurement history</h2>`;
+  const sorted = records.slice().sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  html += sorted.length===0
+    ? `<div class="empty-state"><span class="ic">&#128200;</span><div class="headline">No measurements yet</div><div class="body">Add weight, height and other measurements to track growth over time.</div></div>`
+    : sorted.map(r => `<div class="list-record" onclick="openGrowthForm('${r.id}')">
+        <div class="lr-top"><span class="lr-date">${new Date(r.ts).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}</span></div>
+        <div class="lr-preview">${[r.weight!=null?r.weight+' kg':null, r.height!=null?r.height+' cm':null, r.bmi!=null?'BMI '+r.bmi:null].filter(Boolean).join(' \u00b7 ') || 'Tap to view'}</div>
+      </div>`).join('');
+
+  body.innerHTML = html;
+}
+
+function growthFormHTML(rec){
+  const r = rec || { fields:{}, notes:'', ts:new Date().toISOString() };
+  const f = r.fields||{};
+  return `<div class="exam-section">
+      <h3>New measurement</h3>
+      <div class="erow"><div class="ef" style="grid-column:1/-1;"><label>Date measured</label><input type="date" id="gw-date" value="${(r.ts||todayStr()+'T').slice(0,10)}"></div></div>
+      ${chunk(GROWTH_FIELDS,2).map(row=>`<div class="erow">${row.map(([k,label])=>`<div class="ef"><label>${label}</label><input type="number" step="0.1" inputmode="decimal" id="gw-${k}" value="${f[k]!=null?f[k]:''}" oninput="gwUpdatePreview()"></div>`).join('')}</div>`).join('')}
+      <div class="erow">
+        <div class="ef"><label>Dentition</label><input type="text" id="gw-dentition" value="${escapeHTML(f.dentition||'')}"></div>
+        <div class="ef"><label>Deha</label><input type="text" id="gw-deha" value="${escapeHTML(f.deha||'')}"></div>
+      </div>
+      <div class="ef" id="gw-bmi-preview" style="margin-top:8px; font-size:12.5px; color:var(--ink-soft);">BMI: \u2013</div>
+    </div>
+    <div class="field"><label>Clinical notes</label><textarea id="gw-notes" rows="2">${escapeHTML(r.notes||'')}</textarea></div>
+    <div style="display:flex; gap:10px; margin-bottom:16px;">
+      <button class="btn" onclick="cancelGrowthForm()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="saveGrowthForm()">Save measurement</button>
+    </div>`;
+}
+
+function gwUpdatePreview(){
+  const w = document.getElementById('gw-weight')?.value;
+  const h = document.getElementById('gw-height')?.value;
+  const b = bmiOf(w,h);
+  const el = document.getElementById('gw-bmi-preview');
+  if(el) el.textContent = 'BMI: ' + (b!=null ? b : '\u2013 (needs weight and height)');
+}
+
+function openGrowthForm(recordId){
+  if(recordId){
+    getGrowthRecords(gdPatientId).then(list => {
+      gwCurrent = list.find(r=>r.id===recordId);
+      gdShowForm = true;
+      renderGrowthTab().then(()=> setTimeout(gwUpdatePreview,0));
+    });
+    return;
+  }
+  gwCurrent = null;
+  gdShowForm = true;
+  renderGrowthTab().then(()=> setTimeout(gwUpdatePreview,0));
+}
+
+function cancelGrowthForm(){
+  gdShowForm = false;
+  gwCurrent = null;
+  renderGrowthTab();
+}
+
+async function saveGrowthForm(){
+  const p = patients.find(x=>x.id===gdPatientId);
+  const dateVal = document.getElementById('gw-date').value || todayStr();
+  const fields = {};
+  GROWTH_FIELDS.forEach(([k]) => {
+    const v = document.getElementById('gw-'+k).value;
+    fields[k] = v==='' ? null : parseFloat(v);
+  });
+  fields.dentition = document.getElementById('gw-dentition').value.trim();
+  fields.deha = document.getElementById('gw-deha').value.trim();
+  const bmi = bmiOf(fields.weight, fields.height);
+  const now = new Date().toISOString();
+  const rec = {
+    id: (gwCurrent && gwCurrent.id) || uid(),
+    patientId: gdPatientId,
+    ts: dateVal + 'T' + now.slice(11),
+    weight: fields.weight, height: fields.height, headCirc: fields.headCirc,
+    chestCirc: fields.chestCirc, abdoCirc: fields.abdoCirc, midArmCirc: fields.midArmCirc,
+    dentition: fields.dentition, deha: fields.deha, bmi: bmi,
+    ageAtMeasurement: p ? (p.dob ? ageFromDob(p.dob) : p.ageManual) : '',
+    sex: p ? p.sex : '',
+    referenceSource: 'WHO Child Growth Standards / WHO 2007 growth reference',
+    notes: document.getElementById('gw-notes').value.trim(),
+    fields: fields
+  };
+  await saveGrowthRecord(rec);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: gdPatientId, type:'growth', text:'Growth measurement recorded', ts: now });
+  if(p){ p.updatedAt = now; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Measurement saved');
+  gdShowForm = false;
+  gwCurrent = null;
+  await renderGrowthTab();
+}
+
+/* ---------- milestones ---------- */
+async function renderMilestonesTab(){
+  const body = document.getElementById('gd-body');
+  const existing = await getMilestones(gdPatientId);
+  mDraft = existing || { patientId: gdPatientId, items:{} };
+  Object.keys(BALA_MILESTONES).forEach(domain => {
+    BALA_MILESTONES[domain].items.forEach((label,i) => {
+      const key = domain+'_'+i;
+      if(!mDraft.items[key]) mDraft.items[key] = { status:'not-assessed', note:'' };
+    });
+  });
+
+  let html = `<div class="ref-note">Bala Roga milestone template. These are developmental-monitoring observations, not a diagnostic screening result.</div>`;
+  html += `<button class="btn-ghost" onclick="openCdcReference()">View standard reference milestones (CDC) &#8594;</button>`;
+
+  Object.entries(BALA_MILESTONES).forEach(([domain, def]) => {
+    html += `<div class="domain-card"><h3>${def.label}</h3>`;
+    def.items.forEach((label,i) => {
+      const key = domain+'_'+i;
+      const item = mDraft.items[key];
+      html += `<div class="milestone-item">
+          <div class="mi-label">${escapeHTML(label)}</div>
+          <div class="seg" data-key="${key}">
+            <button type="button" data-v="achieved" class="${item.status==='achieved'?'active':''}" onclick="setMilestoneStatus('${key}','achieved',this)">Achieved</button>
+            <button type="button" data-v="not-achieved" class="${item.status==='not-achieved'?'active':''}" onclick="setMilestoneStatus('${key}','not-achieved',this)">Not achieved</button>
+            <button type="button" data-v="not-assessed" class="${item.status==='not-assessed'?'active':''}" onclick="setMilestoneStatus('${key}','not-assessed',this)">Not assessed</button>
+          </div>
+          <input type="text" class="mi-note" placeholder="Observation note (optional)" value="${escapeHTML(item.note||'')}" oninput="mDraft.items['${key}'].note=this.value">
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<button class="btn btn-primary btn-block" style="margin-bottom:20px;" onclick="saveMilestonesForm()">Save milestones</button>`;
+  body.innerHTML = html;
+}
+
+function setMilestoneStatus(key, status, btn){
+  mDraft.items[key].status = status;
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function saveMilestonesForm(){
+  const now = new Date().toISOString();
+  mDraft.updatedAt = now;
+  await saveMilestones(mDraft);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: gdPatientId, type:'milestones', text:'Developmental milestones updated', ts: now });
+  const p = patients.find(x=>x.id===gdPatientId); if(p){ p.updatedAt = now; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Milestones saved');
+}
+
+function openCdcReference(){
+  const body = document.getElementById('gd-body');
+  body.innerHTML = `
+    <button class="btn-ghost" onclick="switchGdTab('milestones')">&#8592; Milestones</button>
+    <div class="ref-note">CDC's current milestone checklists are a communication and developmental-monitoring tool from 2 months through 5 years \u2014 not a replacement for standardized developmental screening. Source: cdc.gov/act-early.</div>
+    ${CDC_REFERENCE.map(band => `<div class="cdc-age-card"><div class="age-h">${band.age}</div><ul>${band.points.map(pt=>`<li>${escapeHTML(pt)}</li>`).join('')}</ul></div>`).join('')}
+  `;
+}
+
+/* ---------- specialized progress (Phase 4) ---------- */
+const AUTISM_TEMPLATES = {
+  '1-3': { label:'Age 1–3 years', domains:['Eye Contact','Response to Name','Joint Attention','Babbling / Words','Imitation','Sensory Response','Hyperactivity','Repetitive Behaviors'] },
+  '4-7': { label:'Age 4–7 years', domains:['Language Use','Following Instructions','Play with Peers','Sitting Tolerance','Impulsivity','Task Completion','Emotional Outbursts'] },
+  'upto8': { label:'Up to 8 years', domains:['Focus in Class','Peer Interaction','Verbal Clarity','Memory Recall','Hyperactivity','Impulse Control','Self-Care Tasks','Social Awareness'] }
+};
+const TIMEPOINTS = [
+  ['onAdmission','On admission'], ['week1','Week 1'], ['week2','Week 2'], ['week3','Week 3'], ['week4','Week 4']
+];
+
+let spPatientId = null;
+
+async function openSpecializedProgress(patientId){
+  spPatientId = patientId;
+  const view = document.getElementById('view-profile');
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="backToProfile()">&#8592; Patient</button>
+    <h2 class="section-title">Specialized progress</h2>
+    <div class="action-grid" style="grid-template-columns:1fr;">
+      <button class="qa-btn" onclick="openAutismAdhd('${patientId}')"><span class="ic">&#129504;</span><span class="lb">Autism / ADHD weekly progress</span></button>
+      <button class="qa-btn" onclick="openMuscularDystrophy('${patientId}')"><span class="ic">&#129461;</span><span class="lb">Muscular dystrophy weekly progress</span></button>
+    </div>
+  `;
+}
+
+/* ---- Autism / ADHD ---- */
+let aaRecord = null;
+let aaTimepoint = 'onAdmission';
+let aaView = 'entry';
+let aaOpenScoreKey = null;
+
+function suggestAutismTemplate(patientId){
+  const p = patients.find(x=>x.id===patientId);
+  if(!p || !p.dob) return '1-3';
+  const months = (() => {
+    const b = new Date(p.dob+'T00:00:00'), now = new Date();
+    return (now.getFullYear()-b.getFullYear())*12 + (now.getMonth()-b.getMonth());
+  })();
+  const years = months/12;
+  if(years < 4) return '1-3';
+  if(years < 8) return '4-7';
+  return 'upto8';
+}
+
+async function openAutismAdhd(patientId){
+  spPatientId = patientId;
+  const all = await getSpecialAssessments(patientId);
+  aaRecord = all.find(a=>a.type==='autism_adhd');
+  if(!aaRecord){
+    aaRecord = { id: uid(), patientId, type:'autism_adhd', template: suggestAutismTemplate(patientId), data:{}, descriptions:{}, updatedAt:new Date().toISOString() };
+  }
+  aaTimepoint = 'onAdmission';
+  aaView = 'entry';
+  ensureAaData();
+  renderAutismAdhd();
+}
+
+function ensureAaData(){
+  const domains = AUTISM_TEMPLATES[aaRecord.template].domains;
+  domains.forEach((d,i) => {
+    const key = 'd'+i;
+    if(!aaRecord.data[key]) aaRecord.data[key] = {};
+    TIMEPOINTS.forEach(([tk]) => {
+      if(!aaRecord.data[key][tk]) aaRecord.data[key][tk] = { score:null, comment:'' };
+    });
+    if(!aaRecord.descriptions[key]) aaRecord.descriptions[key] = ['','','','','',''];
+  });
+}
+
+function renderAutismAdhd(){
+  const view = document.getElementById('view-profile');
+  const tpl = AUTISM_TEMPLATES[aaRecord.template];
+  const templateOptions = Object.entries(AUTISM_TEMPLATES).map(([k,v])=>`<option value="${k}" ${aaRecord.template===k?'selected':''}>${v.label}</option>`).join('');
+
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="openSpecializedProgress('${spPatientId}')">&#8592; Specialized progress</button>
+    <h2 class="section-title">Autism / ADHD weekly progress</h2>
+    <div class="field"><label>Template (auto-suggested from age, can override)</label><select id="aa-template" onchange="changeAaTemplate(this.value)">${templateOptions}</select></div>
+    <div class="subtab-row">
+      <div class="stb ${aaView==='entry'?'active':''}" onclick="aaView='entry'; renderAutismAdhd();">Entry</div>
+      <div class="stb ${aaView==='trend'?'active':''}" onclick="aaView='trend'; renderAutismAdhd();">Trend</div>
+    </div>
+    ${aaView==='entry' ? renderAaEntry(tpl) : renderAaTrend(tpl)}
+  `;
+}
+
+function renderAaEntry(tpl){
+  const chips = TIMEPOINTS.map(([k,label])=>`<div class="chip ${aaTimepoint===k?'active':''}" onclick="aaTimepoint='${k}'; aaOpenScoreKey=null; renderAutismAdhd();">${label}</div>`).join('');
+  const rows = tpl.domains.map((label,i) => {
+    const key = 'd'+i;
+    const cell = aaRecord.data[key][aaTimepoint];
+    const scoreButtons = [0,1,2,3,4,5].map(s=>`<button type="button" data-v="${s}" class="${cell.score===s?'active':''}" onclick="setAaScore('${key}',${s},this)">${s}</button>`).join('');
+    const showDesc = aaOpenScoreKey===key;
+    return `<div class="milestone-item">
+        <div class="mi-label">${escapeHTML(label)}</div>
+        <div class="seg" style="flex-wrap:wrap;">${scoreButtons}</div>
+        ${showDesc ? `<textarea class="mi-note" style="margin-top:6px;" rows="2" placeholder="Description for score ${cell.score!=null?cell.score:''} (optional, saved for this domain)" oninput="aaRecord.descriptions['${key}'][${cell.score!=null?cell.score:0}]=this.value">${escapeHTML(cell.score!=null ? (aaRecord.descriptions[key][cell.score]||'') : '')}</textarea>` : ''}
+        <input type="text" class="mi-note" style="margin-top:6px;" placeholder="Comment for this timepoint (optional)" value="${escapeHTML(cell.comment||'')}" oninput="aaRecord.data['${key}']['${aaTimepoint}'].comment=this.value">
+      </div>`;
+  }).join('');
+
+  return `<div class="chip-row">${chips}</div>
+    <div class="domain-card"><h3>${TIMEPOINTS.find(t=>t[0]===aaTimepoint)[1]} \u2014 tap a score to add its description</h3>${rows}</div>
+    <button class="btn btn-primary btn-block" style="margin-bottom:20px;" onclick="saveAutismAdhd()">Save progress</button>`;
+}
+
+function setAaScore(key, score, btn){
+  aaRecord.data[key][aaTimepoint].score = score;
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  aaOpenScoreKey = key;
+  renderAutismAdhd();
+}
+
+function renderAaTrend(tpl){
+  const note = `<div class="ref-note">Trend across On admission \u2192 Week 4. For these scales, lower scores generally represent less impairment \u2014 a downward line is the expected direction of improvement.</div>`;
+  const rows = tpl.domains.map((label,i) => {
+    const key = 'd'+i;
+    const values = TIMEPOINTS.map(([tk]) => aaRecord.data[key][tk].score);
+    return `<div class="sparkline-wrap"><div class="sp-title">${escapeHTML(label)}</div>${makeSparkline(values,'#3F6B4A')}</div>`;
+  }).join('');
+  return note + rows;
+}
+
+function changeAaTemplate(newTpl){
+  aaRecord.template = newTpl;
+  aaOpenScoreKey = null;
+  ensureAaData();
+  renderAutismAdhd();
+}
+
+async function saveAutismAdhd(){
+  aaRecord.updatedAt = new Date().toISOString();
+  await saveSpecialAssessment(aaRecord);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: spPatientId, type:'autism_adhd', text:'Autism/ADHD progress updated', ts: aaRecord.updatedAt });
+  const p = patients.find(x=>x.id===spPatientId); if(p){ p.updatedAt = aaRecord.updatedAt; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Progress saved');
+}
+
+/* ---- Muscular dystrophy ---- */
+let mdRecord = null;
+let mdTimepoint = 'onAdmission';
+let mdView = 'entry';
+
+async function openMuscularDystrophy(patientId){
+  spPatientId = patientId;
+  const all = await getSpecialAssessments(patientId);
+  mdRecord = all.find(a=>a.type==='muscular_dystrophy');
+  const p = patients.find(x=>x.id===patientId);
+  if(!mdRecord){
+    mdRecord = {
+      id: uid(), patientId, type:'muscular_dystrophy',
+      childName: p ? p.name : '', rotation: p ? (p.rotation||'') : '', admissionDate: p ? p.admissionDate : '', mdType:'',
+      data:{}, feedback:'', updatedAt: new Date().toISOString()
+    };
+  }
+  TIMEPOINTS.forEach(([tk]) => {
+    if(!mdRecord.data[tk]) mdRecord.data[tk] = { walk:'', stair:'', floorStand:'', calfA_L:'', calfA_R:'', calfB_L:'', calfB_R:'', calfC_L:'', calfC_R:'', note:'' };
+  });
+  mdTimepoint = 'onAdmission';
+  mdView = 'entry';
+  renderMuscularDystrophy();
+}
+
+function renderMuscularDystrophy(){
+  const view = document.getElementById('view-profile');
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="openSpecializedProgress('${spPatientId}')">&#8592; Specialized progress</button>
+    <h2 class="section-title">Muscular dystrophy weekly progress</h2>
+    <div class="field-row">
+      <div class="field"><label>Type of muscular dystrophy</label><input type="text" id="md-type" value="${escapeHTML(mdRecord.mdType||'')}" oninput="mdRecord.mdType=this.value"></div>
+      <div class="field"><label>Clinical rotation</label><input type="text" id="md-rotation" value="${escapeHTML(mdRecord.rotation||'')}" oninput="mdRecord.rotation=this.value"></div>
+    </div>
+    <div class="subtab-row">
+      <div class="stb ${mdView==='entry'?'active':''}" onclick="mdView='entry'; renderMuscularDystrophy();">Entry</div>
+      <div class="stb ${mdView==='trend'?'active':''}" onclick="mdView='trend'; renderMuscularDystrophy();">Trend</div>
+    </div>
+    ${mdView==='entry' ? renderMdEntry() : renderMdTrend()}
+    <div class="field"><label>Overall clinical feedback</label><textarea id="md-feedback" rows="4" oninput="mdRecord.feedback=this.value">${escapeHTML(mdRecord.feedback||'')}</textarea></div>
+    <button class="btn btn-primary btn-block" style="margin-bottom:20px;" onclick="saveMuscularDystrophy()">Save progress</button>
+  `;
+}
+
+function renderMdEntry(){
+  const chips = TIMEPOINTS.map(([k,label])=>`<div class="chip ${mdTimepoint===k?'active':''}" onclick="mdSwitchTimepoint('${k}')">${label}</div>`).join('');
+  const d = mdRecord.data[mdTimepoint];
+  return `<div class="chip-row">${chips}</div>
+    <div class="exam-section">
+      <h3>Timed tests \u2014 ${TIMEPOINTS.find(t=>t[0]===mdTimepoint)[1]}</h3>
+      <div class="erow">
+        <div class="ef"><label>10-metre walk (sec)</label><input type="number" step="0.1" id="md-walk" value="${d.walk}"></div>
+        <div class="ef"><label>4-stair climb (sec)</label><input type="number" step="0.1" id="md-stair" value="${d.stair}"></div>
+      </div>
+      <div class="erow">
+        <div class="ef"><label>Floor-to-stand \u2014 Gower's (sec)</label><input type="number" step="0.1" id="md-floorstand" value="${d.floorStand}"></div>
+      </div>
+    </div>
+    <div class="exam-section">
+      <h3>Calf muscle circumference (cm)</h3>
+      <div class="erow"><div class="ef"><label>Level A \u2014 Left</label><input type="number" step="0.1" id="md-calfA_L" value="${d.calfA_L}"></div><div class="ef"><label>Level A \u2014 Right</label><input type="number" step="0.1" id="md-calfA_R" value="${d.calfA_R}"></div></div>
+      <div class="erow"><div class="ef"><label>Level B \u2014 Left</label><input type="number" step="0.1" id="md-calfB_L" value="${d.calfB_L}"></div><div class="ef"><label>Level B \u2014 Right</label><input type="number" step="0.1" id="md-calfB_R" value="${d.calfB_R}"></div></div>
+      <div class="erow"><div class="ef"><label>Level C \u2014 Left</label><input type="number" step="0.1" id="md-calfC_L" value="${d.calfC_L}"></div><div class="ef"><label>Level C \u2014 Right</label><input type="number" step="0.1" id="md-calfC_R" value="${d.calfC_R}"></div></div>
+    </div>
+    <div class="field"><label>Observation / comment for this timepoint</label><textarea id="md-note" rows="2">${escapeHTML(d.note||'')}</textarea></div>`;
+}
+
+function mdSwitchTimepoint(newTp){
+  captureMdEntry();
+  mdTimepoint = newTp;
+  renderMuscularDystrophy();
+}
+
+function captureMdEntry(){
+  const d = mdRecord.data[mdTimepoint];
+  ['walk','stair','floorStand','calfA_L','calfA_R','calfB_L','calfB_R','calfC_L','calfC_R'].forEach(k => {
+    const idMap = { floorStand:'md-floorstand' };
+    const el = document.getElementById(idMap[k] || 'md-'+k);
+    if(el) d[k] = el.value;
+  });
+  const noteEl = document.getElementById('md-note');
+  if(noteEl) d.note = noteEl.value;
+}
+
+function renderMdTrend(){
+  captureMdEntry();
+  const num = v => v==='' || v==null ? null : parseFloat(v);
+  const walk = TIMEPOINTS.map(([k])=>num(mdRecord.data[k].walk));
+  const stair = TIMEPOINTS.map(([k])=>num(mdRecord.data[k].stair));
+  const floorStand = TIMEPOINTS.map(([k])=>num(mdRecord.data[k].floorStand));
+  const admission = mdRecord.data['onAdmission'];
+  function calfDelta(levelL, levelR, label){
+    const l0 = num(admission[levelL]), r0 = num(admission[levelR]);
+    const lLatest = num(mdRecord.data['week4'][levelL]) ?? num(mdRecord.data['week3'][levelL]) ?? num(mdRecord.data['week2'][levelL]) ?? num(mdRecord.data['week1'][levelL]);
+    const rLatest = num(mdRecord.data['week4'][levelR]) ?? num(mdRecord.data['week3'][levelR]) ?? num(mdRecord.data['week2'][levelR]) ?? num(mdRecord.data['week1'][levelR]);
+    const dl = (l0!=null && lLatest!=null) ? Math.round((lLatest-l0)*10)/10 : null;
+    const dr = (r0!=null && rLatest!=null) ? Math.round((rLatest-r0)*10)/10 : null;
+    return `<div class="growth-summary"><div class="gcard"><div class="glabel">${label} \u2014 Left, from admission</div><div class="gval">${dl!=null ? (dl>0?'+':'')+dl+' cm' : '\u2013'}</div></div><div class="gcard"><div class="glabel">${label} \u2014 Right, from admission</div><div class="gval">${dr!=null ? (dr>0?'+':'')+dr+' cm' : '\u2013'}</div></div></div>`;
+  }
+  return `<div class="ref-note">Time trends only \u2014 no automatic clinical conclusions are drawn.</div>
+    <div class="sparkline-wrap"><div class="sp-title">10-metre walk time (sec)</div>${makeSparkline(walk,'#3F6B4A')}</div>
+    <div class="sparkline-wrap"><div class="sp-title">4-stair climb time (sec)</div>${makeSparkline(stair,'#C67C33')}</div>
+    <div class="sparkline-wrap"><div class="sp-title">Floor-to-stand time \u2014 Gower's (sec)</div>${makeSparkline(floorStand,'#B23A34')}</div>
+    ${calfDelta('calfA_L','calfA_R','Calf level A')}
+    ${calfDelta('calfB_L','calfB_R','Calf level B')}
+    ${calfDelta('calfC_L','calfC_R','Calf level C')}`;
+}
+
+async function saveMuscularDystrophy(){
+  captureMdEntry();
+  mdRecord.feedback = document.getElementById('md-feedback') ? document.getElementById('md-feedback').value : mdRecord.feedback;
+  mdRecord.updatedAt = new Date().toISOString();
+  await saveSpecialAssessment(mdRecord);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: spPatientId, type:'muscular_dystrophy', text:'Muscular dystrophy progress updated', ts: mdRecord.updatedAt });
+  const p = patients.find(x=>x.id===spPatientId); if(p){ p.updatedAt = mdRecord.updatedAt; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Progress saved');
+}
+
+/* ---------- ayurveda library & treatments (Phase 5) ---------- */
+const LIB_CATEGORIES = {
+  kashaya: { label:'Kashaya', icon:'&#127807;' },
+  churna: { label:'Churna', icon:'&#128138;' },
+  guli: { label:'Guli / Tablets', icon:'&#128138;' },
+  taila: { label:'Taila', icon:'&#129921;' },
+  other: { label:'Other medicines', icon:'&#127793;' },
+  external: { label:'External treatments', icon:'&#129525;' }
+};
+const MEDICINE_FIELDS = [
+  ['ingredients','Ingredients','textarea'], ['preparation','Preparation','textarea'],
+  ['dose','Dose','text'], ['ageGroup','Age group','text'], ['anupana','Anupana','text'],
+  ['indications','Indications','textarea'], ['contraindications','Contraindications / precautions','textarea'],
+  ['duration','Duration','text'], ['pediatricNotes','Pediatric-specific notes','textarea'],
+  ['source','Source','text'], ['personalNotes','Personal notes','textarea']
+];
+const EXTERNAL_FIELDS = [
+  ['materials','Materials used','textarea'], ['procedure','Procedure','textarea'],
+  ['duration','Duration','text'], ['frequency','Frequency','text'], ['ageGroup','Age group','text'],
+  ['indications','Indications','textarea'], ['contraindications','Contraindications / precautions','textarea'],
+  ['pediatricNotes','Pediatric-specific notes','textarea'], ['source','Source','text'], ['personalNotes','Personal notes','textarea']
+];
+function fieldsForCategory(cat){
+  if(cat==='taila') return MEDICINE_FIELDS.filter(f=>f[0]!=='anupana').map(f=> f[0]==='dose' ? ['dose','Dose / application','text'] : f);
+  if(cat==='external') return EXTERNAL_FIELDS;
+  return MEDICINE_FIELDS;
+}
+
+async function renderAyurvedaHub(){
+  const body = document.getElementById('ayurveda-body');
+  const all = await getAllLibraryItems();
+  const counts = {};
+  Object.keys(LIB_CATEGORIES).forEach(c => counts[c] = all.filter(i=>i.category===c).length);
+  body.innerHTML = `
+    <h2 class="section-title top">Ayurveda library</h2>
+    <div class="caution-note">Populate only content you have personally verified from a reliable source. This library is empty until you add entries \u2014 nothing is pre-filled.</div>
+    <div class="lib-grid">
+      ${Object.entries(LIB_CATEGORIES).map(([key,def]) => `
+        <div class="lib-cat-card" onclick="openLibraryCategory('${key}')">
+          <span class="ic">${def.icon}</span>
+          <div class="lb">${def.label}</div>
+          <div class="ct">${counts[key]} ${counts[key]===1?'entry':'entries'}</div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+let libCatCurrent = null;
+
+async function openLibraryCategory(cat){
+  libCatCurrent = cat;
+  await renderLibraryList();
+}
+
+async function renderLibraryList(){
+  const body = document.getElementById('ayurveda-body');
+  const q = (document.getElementById('lib-search')?.value || '').trim().toLowerCase();
+  let items = await getLibraryItems(libCatCurrent);
+  if(q){
+    items = items.filter(i =>
+      (i.name||'').toLowerCase().includes(q) ||
+      (i.tags||[]).some(t=>t.toLowerCase().includes(q)) ||
+      (i.indications||'').toLowerCase().includes(q)
+    );
+  }
+  items = items.slice().sort((a,b)=> (b.favorite?1:0)-(a.favorite?1:0) || (a.name||'').localeCompare(b.name||''));
+  const def = LIB_CATEGORIES[libCatCurrent];
+  body.innerHTML = `
+    <button class="btn-ghost" onclick="renderAyurvedaHub()">&#8592; Library</button>
+    <h2 class="section-title">${def.icon} ${def.label}</h2>
+    <div class="searchbar"><span class="ic">&#128269;</span><input id="lib-search" placeholder="Search name, tags or indications" oninput="renderLibraryList()"></div>
+    <button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openLibraryItemForm(null)">+ Add ${def.label.toLowerCase()}</button>
+    <div id="lib-list-items">
+      ${items.length===0
+        ? `<div class="empty-state"><span class="ic">${def.icon}</span><div class="headline">Nothing here yet</div><div class="body">Add a verified ${def.label.toLowerCase()} entry to start this library.</div></div>`
+        : items.map(i => `<div class="lib-item-card" onclick="openLibraryItemForm('${i.id}')">
+            <span class="star">${i.favorite ? '&#9733;' : ''}</span>
+            <div class="li-body">
+              <div class="li-name">${escapeHTML(i.name)}</div>
+              <div class="li-sub">${escapeHTML([i.ageGroup, i.dose].filter(Boolean).join(' \u00b7 ') || 'Tap to view')}</div>
+              ${i.tags && i.tags.length ? `<div class="li-tags">${i.tags.map(t=>`<span>${escapeHTML(t)}</span>`).join('')}</div>` : ''}
+            </div>
+          </div>`).join('')}
+    </div>
+  `;
+}
+
+let libItemCurrent = null;
+
+async function openLibraryItemForm(itemId){
+  const fields = fieldsForCategory(libCatCurrent);
+  if(itemId){
+    const items = await getLibraryItems(libCatCurrent);
+    libItemCurrent = items.find(i=>i.id===itemId);
+  }else{
+    libItemCurrent = { id: uid(), category: libCatCurrent, name:'', tags:[], favorite:false, createdAt:new Date().toISOString() };
+  }
+  const body = document.getElementById('ayurveda-body');
+  body.innerHTML = `
+    <button class="btn-ghost" onclick="renderLibraryList()">&#8592; ${LIB_CATEGORIES[libCatCurrent].label}</button>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <h2 class="section-title" style="margin-bottom:0;">${itemId ? 'Edit entry' : 'New entry'}</h2>
+      <button class="fav-toggle ${libItemCurrent.favorite?'active':''}" id="lib-fav-btn" onclick="toggleLibFav()">${libItemCurrent.favorite?'&#9733;':'&#9734;'}</button>
+    </div>
+    <div class="field"><label>Name</label><input type="text" id="lib-name" value="${escapeHTML(libItemCurrent.name||'')}"></div>
+    ${fields.map(([k,label,type]) => type==='textarea'
+        ? `<div class="field"><label>${label}</label><textarea id="lib-${k}" rows="2">${escapeHTML(libItemCurrent[k]||'')}</textarea></div>`
+        : `<div class="field"><label>${label}</label><input type="text" id="lib-${k}" value="${escapeHTML(libItemCurrent[k]||'')}"></div>`
+      ).join('')}
+    <div class="field"><label>Tags (comma-separated)</label><input type="text" id="lib-tags" value="${escapeHTML((libItemCurrent.tags||[]).join(', '))}"></div>
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      ${itemId ? `<button class="btn btn-danger" onclick="deleteLibItem()">Delete</button>` : ''}
+      <button class="btn btn-primary" style="flex:1;" onclick="saveLibraryItemForm()">Save entry</button>
+    </div>
+  `;
+}
+
+function toggleLibFav(){
+  libItemCurrent.favorite = !libItemCurrent.favorite;
+  const btn = document.getElementById('lib-fav-btn');
+  btn.classList.toggle('active', libItemCurrent.favorite);
+  btn.innerHTML = libItemCurrent.favorite ? '&#9733;' : '&#9734;';
+}
+
+async function saveLibraryItemForm(){
+  const name = document.getElementById('lib-name').value.trim();
+  if(!name){ toast('Enter a name'); return; }
+  libItemCurrent.name = name;
+  fieldsForCategory(libCatCurrent).forEach(([k]) => {
+    libItemCurrent[k] = document.getElementById('lib-'+k).value.trim();
+  });
+  libItemCurrent.tags = document.getElementById('lib-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  libItemCurrent.updatedAt = new Date().toISOString();
+  await saveLibraryItem(libItemCurrent);
+  showSaveDot();
+  toast('Saved to library');
+  renderLibraryList();
+}
+
+async function deleteLibItem(){
+  if(!confirm('Delete this library entry? Patient records that reference it keep their own saved snapshot.')) return;
+  await deleteLibraryItem(libItemCurrent.id);
+  showSaveDot();
+  toast('Entry deleted');
+  renderLibraryList();
+}
+
+/* ---- patient treatment recording ---- */
+let txPatientId = null;
+let txPickCat = null;
+let txCurrent = null;
+
+async function openTreatments(patientId){
+  txPatientId = patientId;
+  await renderTreatmentList();
+}
+
+async function renderTreatmentList(){
+  const view = document.getElementById('view-profile');
+  const list = (await getTreatmentRecords(txPatientId)).filter(t=>!t.deleted).sort((a,b)=>(b.startDate||'').localeCompare(a.startDate||''));
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="backToProfile()">&#8592; Patient</button>
+    <h2 class="section-title">Treatment</h2>
+    <button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openTreatmentPicker()">+ Add treatment</button>
+    <div id="tx-list-items">
+      ${list.length===0
+        ? `<div class="empty-state"><span class="ic">&#127807;</span><div class="headline">No treatments recorded</div><div class="body">Add Kashaya, Churna, Taila, medicines or external treatments prescribed for this patient.</div></div>`
+        : list.map(t => `<div class="patient-card" onclick="openTreatmentForm('${t.id}')">
+            <div class="bed">${LIB_CATEGORIES[t.category] ? LIB_CATEGORIES[t.category].icon : '&#127807;'}</div>
+            <div class="info">
+              <div class="name">${escapeHTML(t.name)}</div>
+              <div class="sub">${escapeHTML([t.dose, t.frequency].filter(Boolean).join(' \u00b7 ') || fmtDate(t.startDate))}</div>
+            </div>
+            <div class="status-pill status-badge ${(''+t.status).toLowerCase()}">${escapeHTML(t.status||'Continue')}</div>
+          </div>`).join('')}
+    </div>
+  `;
+}
+
+function openTreatmentPicker(){
+  txPickCat = null;
+  const view = document.getElementById('view-profile');
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="renderTreatmentList()">&#8592; Treatment</button>
+    <h2 class="section-title">Add treatment \u2014 choose category</h2>
+    <div class="cat-pick-row">
+      ${Object.entries(LIB_CATEGORIES).map(([k,def]) => `<div class="cat-pick" onclick="pickTreatmentCategory('${k}')"><span class="ic">${def.icon}</span>${def.label}</div>`).join('')}
+    </div>
+  `;
+}
+
+async function pickTreatmentCategory(cat){
+  txPickCat = cat;
+  const items = await getLibraryItems(cat);
+  const view = document.getElementById('view-profile');
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="openTreatmentPicker()">&#8592; Category</button>
+    <h2 class="section-title">${LIB_CATEGORIES[cat].icon} ${LIB_CATEGORIES[cat].label}</h2>
+    <div class="searchbar"><span class="ic">&#128269;</span><input id="tx-item-search" placeholder="Search ${LIB_CATEGORIES[cat].label.toLowerCase()}" oninput="filterTxItemPicker()"></div>
+    <div id="tx-item-list">
+      ${items.length===0 ? `<p class="subtle">Nothing in this library yet.</p>` :
+        items.map(i=>`<div class="lib-item-card" data-name="${escapeHTML(i.name).toLowerCase()}" onclick="openTreatmentForm(null,'${i.id}')">
+            <div class="li-body"><div class="li-name">${escapeHTML(i.name)}</div><div class="li-sub">${escapeHTML([i.ageGroup,i.dose].filter(Boolean).join(' \u00b7 '))}</div></div>
+          </div>`).join('')}
+    </div>
+    <button class="btn btn-block" style="margin-top:10px; margin-bottom:20px;" onclick="openTreatmentForm(null,null)">Use a custom name instead</button>
+  `;
+}
+
+function filterTxItemPicker(){
+  const q = document.getElementById('tx-item-search').value.trim().toLowerCase();
+  document.querySelectorAll('#tx-item-list .lib-item-card').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+
+async function openTreatmentForm(recordId, libraryItemId){
+  const view = document.getElementById('view-profile');
+  if(recordId){
+    const list = await getTreatmentRecords(txPatientId);
+    txCurrent = list.find(t=>t.id===recordId);
+    txPickCat = txCurrent.category;
+  }else{
+    let libItem = null;
+    if(libraryItemId){
+      const items = await getLibraryItems(txPickCat);
+      libItem = items.find(i=>i.id===libraryItemId);
+    }
+    txCurrent = {
+      id: uid(), patientId: txPatientId, category: txPickCat,
+      libraryItemId: libraryItemId || null,
+      name: libItem ? libItem.name : '',
+      dose: libItem ? (libItem.dose||'') : '', anupana: libItem ? (libItem.anupana||'') : '',
+      route:'', frequency:'', startDate: todayStr(), duration: libItem ? (libItem.duration||'') : '',
+      status:'Continue', notes:''
+    };
+  }
+  const showAnupana = txPickCat!=='taila' && txPickCat!=='external';
+  const showRoute = txPickCat==='taila' || txPickCat==='external';
+  view.innerHTML = `
+    <button class="btn-ghost" onclick="renderTreatmentList()">&#8592; Treatment</button>
+    <h2 class="section-title">${LIB_CATEGORIES[txCurrent.category] ? LIB_CATEGORIES[txCurrent.category].icon+' '+LIB_CATEGORIES[txCurrent.category].label : 'Treatment'}</h2>
+    <div class="field"><label>Name</label><input type="text" id="tx-name" value="${escapeHTML(txCurrent.name)}" ${txCurrent.libraryItemId?'':''}></div>
+    <div class="field-row">
+      <div class="field"><label>Dose</label><input type="text" id="tx-dose" value="${escapeHTML(txCurrent.dose||'')}"></div>
+      <div class="field"><label>Frequency</label><input type="text" id="tx-frequency" value="${escapeHTML(txCurrent.frequency||'')}"></div>
+    </div>
+    ${showAnupana ? `<div class="field"><label>Anupana</label><input type="text" id="tx-anupana" value="${escapeHTML(txCurrent.anupana||'')}"></div>` : ''}
+    ${showRoute ? `<div class="field"><label>Route / application area</label><input type="text" id="tx-route" value="${escapeHTML(txCurrent.route||'')}"></div>` : ''}
+    <div class="field-row">
+      <div class="field"><label>Start date</label><input type="date" id="tx-startdate" value="${txCurrent.startDate||todayStr()}"></div>
+      <div class="field"><label>Duration</label><input type="text" id="tx-duration" value="${escapeHTML(txCurrent.duration||'')}"></div>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <div class="seg" id="tx-status">
+        ${['Continue','Change','Omit','Completed'].map(s=>`<button type="button" data-v="${s}" class="${txCurrent.status===s?'active':''}" onclick="segPick('tx-status',this)">${s}</button>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="tx-notes" rows="2">${escapeHTML(txCurrent.notes||'')}</textarea></div>
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      ${recordId ? `<button class="btn btn-danger" onclick="deleteTreatment()">Delete</button>` : ''}
+      <button class="btn btn-primary" style="flex:1;" onclick="saveTreatmentForm()">Save treatment</button>
+    </div>
+  `;
+  segState['tx-status'] = txCurrent.status;
+}
+
+async function saveTreatmentForm(){
+  const name = document.getElementById('tx-name').value.trim();
+  if(!name){ toast('Enter a treatment name'); return; }
+  txCurrent.name = name;
+  txCurrent.dose = document.getElementById('tx-dose').value.trim();
+  txCurrent.frequency = document.getElementById('tx-frequency').value.trim();
+  const anupanaEl = document.getElementById('tx-anupana'); if(anupanaEl) txCurrent.anupana = anupanaEl.value.trim();
+  const routeEl = document.getElementById('tx-route'); if(routeEl) txCurrent.route = routeEl.value.trim();
+  txCurrent.startDate = document.getElementById('tx-startdate').value || todayStr();
+  txCurrent.duration = document.getElementById('tx-duration').value.trim();
+  txCurrent.status = segState['tx-status'] || 'Continue';
+  txCurrent.notes = document.getElementById('tx-notes').value.trim();
+  const now = new Date().toISOString();
+  txCurrent.updatedAt = now;
+  await saveTreatmentRecord(txCurrent);
+  await saveEvent({ id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), patientId: txPatientId, type:'treatment', text:'Treatment '+ (txCurrent.status||'').toLowerCase() +': '+txCurrent.name, ts: now });
+  const p = patients.find(x=>x.id===txPatientId); if(p){ p.updatedAt = now; await savePatient(p); patients = await loadAllPatients(); }
+  showSaveDot();
+  toast('Treatment saved');
+  renderTreatmentList();
+}
+
+async function deleteTreatment(){
+  if(!confirm('Remove this treatment record?')) return;
+  txCurrent.deleted = true;
+  txCurrent.updatedAt = new Date().toISOString();
+  await saveTreatmentRecord(txCurrent);
+  showSaveDot();
+  toast('Treatment removed');
+  renderTreatmentList();
+}
+
+/* ---------- knowledge library (Phase 6) ---------- */
+const KNOWLEDGE_CATEGORIES = ['Kashaya','Churna','Guli / Tablets','Taila','Other medicine','External treatment','Clinical pearl','General'];
+let qkFavPick = false;
+let knowledgeFilterTag = null;
+let knowledgeFilterFav = false;
+
+function openQuickKnowledge(){
+  const sel = document.getElementById('qk-category');
+  sel.innerHTML = KNOWLEDGE_CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('quick-knowledge-form').reset();
+  document.getElementById('qk-date').value = todayStr();
+  document.getElementById('qk-more').style.display = 'none';
+  document.getElementById('qk-more-toggle').textContent = '+ Add more details';
+  qkFavPick = false;
+  const favBtn = document.getElementById('qk-fav-btn');
+  favBtn.classList.remove('active'); favBtn.innerHTML = '&#9734;';
+  openModal('modal-quick-knowledge');
+}
+
+function toggleQkMore(){
+  const el = document.getElementById('qk-more');
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('qk-more-toggle').textContent = isOpen ? '+ Add more details' : '\u2212 Hide details';
+}
+
+function toggleQkFav(){
+  qkFavPick = !qkFavPick;
+  const btn = document.getElementById('qk-fav-btn');
+  btn.classList.toggle('active', qkFavPick);
+  btn.innerHTML = qkFavPick ? '&#9733;' : '&#9734;';
+}
+
+async function submitQuickKnowledge(e){
+  e.preventDefault();
+  const title = document.getElementById('qk-title').value.trim();
+  const learned = document.getElementById('qk-learned').value.trim();
+  if(!title || !learned){ toast('Add a title and what you learned'); return false; }
+  const now = new Date().toISOString();
+  const note = {
+    id: uid(), title, category: document.getElementById('qk-category').value,
+    whatILearned: learned,
+    usefulFor: document.getElementById('qk-usefulfor').value.trim(),
+    source: document.getElementById('qk-source').value.trim(),
+    tags: document.getElementById('qk-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    date: document.getElementById('qk-date').value || todayStr(),
+    favorite: qkFavPick,
+    createdAt: now, updatedAt: now
+  };
+  await saveKnowledgeNote(note);
+  showSaveDot();
+  closeModal('modal-quick-knowledge');
+  toast('Knowledge saved');
+  if(document.getElementById('view-knowledge').classList.contains('active')) renderKnowledgeHub();
+}
+
+async function renderKnowledgeHub(){
+  const body = document.getElementById('knowledge-body');
+  const notes = await getAllKnowledgeNotes();
+  const tagCounts = {};
+  notes.forEach(n => (n.tags||[]).forEach(t => tagCounts[t] = (tagCounts[t]||0)+1));
+  const topTags = Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(t=>t[0]);
+
+  body.innerHTML = `
+    <h2 class="section-title top">Knowledge library</h2>
+    <div class="searchbar"><span class="ic">&#128269;</span><input id="kn-search" placeholder="Search title, notes or tags" oninput="filterKnowledgeList()"></div>
+    <div class="chip-row">
+      <div class="chip ${!knowledgeFilterTag && !knowledgeFilterFav ?'active':''}" data-role="all" onclick="knowledgeFilterTag=null; knowledgeFilterFav=false; filterKnowledgeList();">All</div>
+      <div class="chip ${knowledgeFilterFav?'active':''}" data-role="fav" onclick="knowledgeFilterFav=!knowledgeFilterFav; filterKnowledgeList();">&#9733; Favorites</div>
+      ${topTags.map(t=>`<div class="chip ${knowledgeFilterTag===t?'active':''}" data-role="tag" data-tag="${escapeHTML(t)}" onclick="knowledgeFilterTag=(knowledgeFilterTag==='${t}'?null:'${t}'); filterKnowledgeList();">${escapeHTML(t)}</div>`).join('')}
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openQuickKnowledge()">+ Quick knowledge</button>
+    <div id="kn-list"></div>
+  `;
+  await filterKnowledgeList();
+}
+
+async function filterKnowledgeList(){
+  const q = (document.getElementById('kn-search')?.value || '').trim().toLowerCase();
+  let notes = await getAllKnowledgeNotes();
+  let filtered = notes.slice();
+  if(knowledgeFilterFav) filtered = filtered.filter(n=>n.favorite);
+  if(knowledgeFilterTag) filtered = filtered.filter(n=>(n.tags||[]).includes(knowledgeFilterTag));
+  if(q){
+    filtered = filtered.filter(n =>
+      (n.title||'').toLowerCase().includes(q) ||
+      (n.whatILearned||'').toLowerCase().includes(q) ||
+      (n.category||'').toLowerCase().includes(q) ||
+      (n.tags||[]).some(t=>t.toLowerCase().includes(q))
+    );
+  }
+  filtered.sort((a,b)=> (b.favorite?1:0)-(a.favorite?1:0) || (b.date||'').localeCompare(a.date||''));
+
+  document.querySelectorAll('.chip-row .chip').forEach(c=>{
+    const role = c.dataset.role;
+    let active = false;
+    if(role==='all') active = !knowledgeFilterTag && !knowledgeFilterFav;
+    else if(role==='fav') active = knowledgeFilterFav;
+    else if(role==='tag') active = knowledgeFilterTag===c.dataset.tag;
+    c.classList.toggle('active', active);
+  });
+  const listEl = document.getElementById('kn-list');
+  listEl.innerHTML = filtered.length===0
+    ? `<div class="empty-state"><span class="ic">&#128218;</span><div class="headline">${notes.length===0?'Nothing captured yet':'No matches'}</div><div class="body">${notes.length===0 ? 'Save a learning point in seconds after a ward round or a case.' : 'Try a different search or clear the filters.'}</div></div>`
+    : filtered.map(n => `<div class="lib-item-card" onclick="openKnowledgeDetail('${n.id}')">
+        <span class="star">${n.favorite ? '&#9733;' : ''}</span>
+        <div class="li-body">
+          <div class="li-name">${escapeHTML(n.title)}</div>
+          <div class="li-sub">${escapeHTML(n.whatILearned||'')}</div>
+          <div class="li-tags"><span class="cat-badge" style="margin-right:4px;">${escapeHTML(n.category||'General')}</span>${(n.tags||[]).map(t=>`<span>${escapeHTML(t)}</span>`).join('')}</div>
+        </div>
+      </div>`).join('');
+}
+
+let knCurrent = null;
+
+async function openKnowledgeDetail(id){
+  const notes = await getAllKnowledgeNotes();
+  knCurrent = notes.find(n=>n.id===id);
+  const body = document.getElementById('knowledge-body');
+  body.innerHTML = `
+    <button class="btn-ghost" onclick="renderKnowledgeHub()">&#8592; Knowledge library</button>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <h2 class="section-title" style="margin-bottom:0;">Edit note</h2>
+      <button class="fav-toggle ${knCurrent.favorite?'active':''}" id="kn-fav-btn" onclick="toggleKnFav()">${knCurrent.favorite?'&#9733;':'&#9734;'}</button>
+    </div>
+    <div class="field"><label>Title</label><input type="text" id="kn-title" value="${escapeHTML(knCurrent.title)}"></div>
+    <div class="field"><label>Category</label><select id="kn-category">${KNOWLEDGE_CATEGORIES.map(c=>`<option value="${c}" ${knCurrent.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="field"><label>What I learned</label><textarea id="kn-learned" rows="3">${escapeHTML(knCurrent.whatILearned||'')}</textarea></div>
+    <div class="field"><label>Useful for</label><textarea id="kn-usefulfor" rows="2">${escapeHTML(knCurrent.usefulFor||'')}</textarea></div>
+    <div class="field-row">
+      <div class="field"><label>Source</label><input type="text" id="kn-source" value="${escapeHTML(knCurrent.source||'')}"></div>
+      <div class="field"><label>Date</label><input type="date" id="kn-date" value="${knCurrent.date||todayStr()}"></div>
+    </div>
+    <div class="field"><label>Tags (comma-separated)</label><input type="text" id="kn-tags" value="${escapeHTML((knCurrent.tags||[]).join(', '))}"></div>
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <button class="btn btn-danger" onclick="deleteKnowledgeDetail()">Delete</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="saveKnowledgeDetail()">Save note</button>
+    </div>
+  `;
+}
+
+function toggleKnFav(){
+  knCurrent.favorite = !knCurrent.favorite;
+  const btn = document.getElementById('kn-fav-btn');
+  btn.classList.toggle('active', knCurrent.favorite);
+  btn.innerHTML = knCurrent.favorite ? '&#9733;' : '&#9734;';
+}
+
+async function saveKnowledgeDetail(){
+  knCurrent.title = document.getElementById('kn-title').value.trim();
+  knCurrent.category = document.getElementById('kn-category').value;
+  knCurrent.whatILearned = document.getElementById('kn-learned').value.trim();
+  knCurrent.usefulFor = document.getElementById('kn-usefulfor').value.trim();
+  knCurrent.source = document.getElementById('kn-source').value.trim();
+  knCurrent.date = document.getElementById('kn-date').value || todayStr();
+  knCurrent.tags = document.getElementById('kn-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  knCurrent.updatedAt = new Date().toISOString();
+  await saveKnowledgeNote(knCurrent);
+  showSaveDot();
+  toast('Note saved');
+  renderKnowledgeHub();
+}
+
+async function deleteKnowledgeDetail(){
+  if(!confirm('Delete this knowledge note?')) return;
+  await deleteKnowledgeNote(knCurrent.id);
+  showSaveDot();
+  toast('Note deleted');
+  renderKnowledgeHub();
+}
+
+/* ---------- backup / restore ---------- */
+async function exportBackup(){
+  const allPatients = await loadAllPatients();
+  const allEvents = await loadAllEvents();
+  const data = { app:'balacare', version:1, exportedAt:new Date().toISOString(), patients:allPatients, events:allEvents };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'balacare-backup-' + todayStr() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('Backup exported');
+}
+
+function importBackup(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.patients)){ toast('This file is not a valid backup'); return; }
+      const proceed = confirm('Import ' + data.patients.length + ' patient record(s)? This merges with existing data by ID.');
+      if(!proceed) return;
+      for(const p of data.patients) await savePatient(p);
+      for(const e of (data.events||[])) await saveEvent(e);
+      showSaveDot();
+      patients = await loadAllPatients();
+      renderPatients(); renderHome(); refreshToolCount();
+      toast('Backup imported');
+    }catch(err){
+      toast('Could not read that file');
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function confirmDeleteAll(){
+  const ok = confirm('Delete ALL patients and records from this device? This cannot be undone. Export a backup first if you are not sure.');
+  if(!ok) return;
+  const ok2 = confirm('This is permanent. Delete everything now?');
+  if(!ok2) return;
+  clearAllData().then(async ()=>{
+    patients = await loadAllPatients();
+    renderHome(); renderPatients(); refreshToolCount();
+    toast('All data deleted');
+  });
+}
+
+function refreshToolCount(){
+  document.getElementById('tool-count').textContent = patients.length + ' record' + (patients.length===1?'':'s') + ', locally on this device';
+}
+
+/* ---------- init ---------- */
+async function init(){
+  try{
+    db = await openDB();
+  }catch(err){
+    memoryMode = true;
+    toast('Storage is limited to this session in this preview');
+  }
+  patients = await loadAllPatients();
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString(undefined,{weekday:'short', day:'numeric', month:'short'});
+  refreshToolCount();
+  goto('home');
+}
+init();
+</script>
+</body>
+</html>
